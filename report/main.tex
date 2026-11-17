@@ -21,8 +21,8 @@
 \begin{document}
 \maketitle
 
-% Čísla v texte: results/*.csv, results/*.log (scripts/run_baselines.py, scripts/experiment_constraints.py,
-% scripts/examples.py). Tabuľka baseline: tables/baselines.tex (generuje run_baselines.py).
+% Čísla v texte: results/*.csv a results/examples.txt (scripts/run_baselines.py, scripts/experiment_constraints.py,
+% scripts/examples.py). Tabuľka E2: tables/e2.tex (generuje experiment_constraints.py). Tabuľka baseline: tables/baselines.tex (generuje run_baselines.py).
 
 \begin{abstract}
 V druhom míľniku sme naprogramovali model úlohy (kandidát, kontrola pravidiel, simulácia
@@ -35,8 +35,8 @@ o počte aktív a veľkosti podielov smeruje maximalizácia Sharpe k portfóliá
 efektívnymi aktívami (napr. 83\,\% v jednom dlhopisovom ETF). Striktné obmedzenia dali
 pri rovnakom algoritme a rozpočte vždy prípustný výsledok, vyšší Sharpe a výrazne stabilnejšie
 behy než penalizácia, preto ich ponechávame. Baseline ukazuje hlavný jav úlohy: optimalizácia
-zvýši Sharpe na optimalizačnom období z~0,5--0,9 na 0,9--2,3, ale na testovacom období to
-pomôže len v dvoch zo štyroch inštancií.
+zvýši Sharpe na optimalizačnom období z~0,5--0,9 na 0,9--2,3, ale na testovacom období prekoná
+1/N aj priemer náhodných portfólií len v dvoch zo štyroch inštancií.
 \end{abstract}
 
 % =====================================================================================
@@ -60,8 +60,8 @@ Alphabetu približne 1\,350\,USD (pred neskorším rozdelením akcií). Zlomky k
 väčšina brokerov a úloha zostáva spojitá v podieloch (časť~\ref{sec:form}). \\
 Dane neuvažujeme. &
 Daň závisí od krajiny a doby držby, nie od metódy. Pri jednorazovom nákupe a držbe 2--3 roky
-sa týka len konečného zisku a dividend; zníži konečnú sumu všetkých metód podobne a nemení
-Sharpeho pomer počas obdobia. Ostáva mimo modelu, uvádzame ho medzi obmedzeniami záverov. \\
+sa týka len konečného zisku a dividend; zníži konečnú sumu všetkých metód podobne a Sharpeho
+pomer počas obdobia takmer nemení (priebežne by sa zdaňovali iba dividendy). Ostáva mimo modelu, uvádzame ho medzi obmedzeniami záverov. \\
 Načo vektor áno/nie, keď podiel môže byť 0? &
 Súhlasíme, vektor bol nadbytočný. Kandidát je teraz jediný vektor podielov $w\in\mathbb{R}^{30}$;
 aktívum je vybrané, ak $w_i>0$ (časť~\ref{sec:form}). \\
@@ -88,7 +88,7 @@ a odchýlku cez 20 behov (časť~\ref{sec:base}). \\
 Zohľadniť mieru diverzifikácie bez ohľadu na výnos? &
 Zaviedli sme efektívny počet aktív $N_\text{eff}=1/\sum_i w_i^2$, uvádzame ho pri každom
 výsledku a vyskúšali sme ho ako penalizáciu (E2). \\
-Penalizácia (1--2 aktíva áno, 3 nie) alebo pevné limity? &
+Penalizovať nízku diverzifikáciu (napr. portfólio z~1--2 aktív), alebo použiť pevné limity? &
 Porovnali sme oboje na ladiacej inštancii. Vyhrali pevné limity (časť~\ref{sec:div}). \\
 \bottomrule
 \end{tabularx}
@@ -119,6 +119,11 @@ $r(t)=V(t)/V(t-1)-1$ na optimalizačnom období, $f(w)=\bar r/s_r\cdot\sqrt{252}
 Pravidlo O5 sa vzťahuje na optimalizačné obdobie (to investor v čase rozhodnutia pozná).
 Premenná $w_i$ je teda \emph{semi-spojitá}: buď presne 0, alebo spojitá hodnota z~$[\ell,u]$.
 Úloha je kombinatorická vo výbere $S$ a spojitá v podieloch vybraných aktív.
+
+\paragraph{Poplatky, dividendy a dane.} Transakčné poplatky nezapočítavame (zdôvodnenie
+v~míľniku~1: mnohí brokeri obchodujú akcie a ETF bez poplatku a pri jednorazovom nákupe a
+predaji by znížili výsledok všetkých metód takmer rovnako). Dividendy sú zahrnuté v~upravených
+cenách, teda ako okamžite reinvestované do toho istého aktíva. Dane neuvažujeme.
 
 \paragraph{Prečo prípustné riešenia vždy existujú.} Ak vyberieme $K$ aktív a každé má podiel
 v~$[\ell,u]$, ich súčet môže byť ľubovoľné číslo z~$[K\ell,\,Ku]$. Pravidlo O1 sa dá splniť
@@ -157,6 +162,10 @@ EEM (rozvíjajúce sa trhy), AGG, TLT, LQD (dlhopisy), GLD (zlato), VNQ (nehnute
 a sektory XLK, XLE, XLV, XLF, XLP. Všetky aktíva majú vo všetkých inštanciách ceny počas celého
 obdobia, pravidlo O5 teda žiadne aktívum nevylučuje (je však implementované).
 
+Ladiaca inštancia používa len dáta do roku 2017, kým všetky testovacie obdobia hodnotiacich
+inštancií začínajú v~roku 2018. Ladenie metód a rozhodnutia o formulácii preto nevidia žiadne
+dáta, na ktorých metódy záverečne hodnotíme.
+
 \begin{table}[h]
 \centering\small
 \caption{Inštancie. Ladiacu používame len na nastavenie metód a rozhodnutia o formulácii.}
@@ -190,7 +199,7 @@ Kód je v Pythone (\texttt{numpy}, \texttt{pandas}, \texttt{scipy}), spúšťani
   výnos, ročné kolísanie, najväčší prepad, konečnú hodnotu a $N_\text{eff}$.
   Trieda \texttt{Evaluator} je rýchla ohodnocovacia funkcia s~počítadlom ohodnotení: ceny
   vydelí cenami v deň nákupu raz vopred, takže jedno ohodnotenie je jedno násobenie matice
-  $1006\times 30$ vektorom a trvá asi 57\,µs. Počítadlo použijeme na férové porovnanie metód.
+  $1006\times 30$ vektorom a trvá rádovo desiatky mikrosekúnd (22--57\,µs podľa počítača). Počítadlo použijeme na férové porovnanie metód.
 \item \texttt{repair.py} -- oprava, dekóder skóre a penalizačné funkcie (nižšie).
 \item \texttt{baselines.py} -- baseline a referenčné prehľadávania (časť~\ref{sec:base}).
 \end{itemize}
@@ -216,7 +225,11 @@ uberie ostatným.
 vybrané sú aktíva so skóre nad 0,5, ich počet sa oreže alebo doplní podľa skóre na
 $[k_{\min},k_{\max}]$ a skóre vybraných aktív sa opravou premietnu na podiely. Z každého vektora
 skóre vznikne prípustné portfólio deterministicky (rovnaké skóre $\to$ rovnaké portfólio);
-dekódovanie trvá asi 65\,µs.
+dekódovanie trvá 25--65\,µs podľa počítača. Vlastnosť, ktorú treba poznať: pri rovnomerne
+náhodných skóre je nad prahom v~priemere 15 aktív, takže dekóder v~približne 98\,\% prípadov
+vyberie presne $k_{\max}=10$ aktív. Náhodná štartovacia populácia (napr. pri diferenciálnej
+evolúcii) preto obsahuje takmer len portfóliá s~10 aktívami; menší počet aktív musí algoritmus
+nájsť sám (lokálne prehľadávanie sa dostane aj na 5 aktív, časť~\ref{sec:div}).
 
 \paragraph{Penalizácia.} Kandidát sa iba normalizuje (záporné na 0, súčet na 1, teda O1 a O2
 platia vždy) a ohodnotenie je $f(w)-\lambda\, p(w)$. Implementovali sme dve miery porušenia:
@@ -235,7 +248,7 @@ Tak má na konci vždy platného kandidáta.
 \section{Overenie modelu}
 \label{sec:verify}
 
-\paragraph{Unit testy} (\texttt{tests/test\_model.py}, 20 testov, všetky prechádzajú) overujú model
+\paragraph{Unit testy} (\texttt{tests/test\_model.py}, 24 testov, všetky prechádzajú) overujú model
 na príkladoch spočítaných ručne. Napríklad: aktívum A stojí 100, 110, 99\,USD a aktívum B
 50, 50, 60\,USD; portfólio 50/50 z~1\,000\,USD kúpi 5 kusov A a 10 kusov B, takže hodnoty sú
 1\,000, 1\,050 a 1\,095\,USD a denné výnosy 5\,\% a 4,29\,\% -- model vráti presne tieto hodnoty
@@ -244,11 +257,13 @@ aj zodpovedajúci Sharpe. Ďalšie testy overujú najväčší prepad
 simulácia, že dve aktíva s opačným kolísaním majú spolu vyšší Sharpe ako každé zvlášť, že
 \texttt{check} odhalí porušenie každého pravidla O1--O5 a že oprava, dekóder aj generátor
 náhodných portfólií dajú na 2\,000 náhodných vstupoch vždy prípustný výsledok. Presný výpočet
-projekcie porovnávame s bisekciou na 500 náhodných vstupoch.
+projekcie porovnávame s bisekciou na 500 náhodných vstupoch. Generátor náhodných portfólií
+overujeme aj pri prísnejších pravidlách ($u=20\,\%$, keď sa pri $K=5$ dá súčet 1 splniť len
+rovnakými podielmi) a pri nesplniteľných pravidlách, ktoré musia skončiť chybou.
 
 \paragraph{Príklady na skutočných dátach} (inštancia I1, \texttt{scripts/examples.py},
-tabuľka~\ref{tab:examples}). Kandidát B (100\,\% Microsoft, najlepší Sharpe spomedzi jednotlivých
-aktív) a C~(dve akcie) majú vysoký Sharpe, ale \texttt{check} ich správne odmietne. Kandidát D
+tabuľka~\ref{tab:examples}). Kandidát B (100\,\% Microsoft, akcia s~najvyšším Sharpe na optimalizačnom
+období) a C~(dve akcie) majú vysoký Sharpe, ale \texttt{check} ich správne odmietne. Kandidát D
 porušuje len O4, oprava ho posunie na prípustné portfólio s~takmer rovnakým hodnotením.
 Kandidát~E (1/N všetkých 30) porušuje O3 aj O4.
 
@@ -274,12 +289,14 @@ E & 30 aktív po 3,33\,\% & O3, O4 & 0,99 & 0,59 & 13\,171 & 30,00 \\
 \label{sec:div}
 
 \paragraph{E1: Kam smeruje maximalizácia Sharpe bez pravidiel O3, O4?} Na optimalizačnom období
-každej inštancie sme presne vyriešili úlohu len s O1 a O2 (nelineárny solver SLSQP z~\texttt{scipy},
-20 náhodných štartov). Výsledok (tabuľka~\ref{tab:e1}) nie je 100\,\% v najlepšom aktíve:
+každej inštancie sme numericky riešili úlohu len s O1 a O2 (nelineárny solver SLSQP z~\texttt{scipy},
+20 náhodných štartov). Solver nájde lokálne optimum a Sharpe pri držbe bez vyvažovania nemusí mať
+jediné optimum, preto výsledok berieme ako najlepšiu nájdenú hodnotu. Výsledok (tabuľka~\ref{tab:e1}) nie je 100\,\% v najlepšom aktíve:
 kombinácia aktív má vždy vyšší Sharpe než najlepšie samostatné aktívum (napr. 2,05 oproti 1,23
 v I1), lebo kolísania sa čiastočne rušia. Je však silne koncentrovaný: $N_\text{eff}$ je len 1,4--3,3
 a najväčší podiel 48--83\,\%, najmä v~dlhopisoch a zlate, ktoré v daných obdobiach málo kolísali.
-Tento optimálny Sharpe bez O3, O4 je zároveň horným odhadom pre našu úlohu s obmedzeniami.
+Keďže pravidlá O3 a O4 prípustnú množinu len zmenšujú, slúži táto hodnota zároveň ako
+orientačný horný odhad pre našu úlohu s~obmedzeniami; žiadna z~metód ho neprekročila.
 
 \begin{table}[h]
 \centering\small
@@ -312,7 +329,8 @@ dáta inštancií zo záverečného porovnania.
 \caption{E2: rovnaký algoritmus s rôznou prácou s obmedzeniami (ladiaca inštancia, 20 behov
 $\times$ 5\,000 ohodnotení). „Prípustné“ = podiel behov, ktorých najlepší kandidát podľa vlastnej
 funkcie spĺňa O1--O5; „neprípustné ohodn.“ = podiel ohodnotení minutých na neprípustných
-kandidátov. Sharpe je pre odovzdané (vždy prípustné) portfólio, priemer $\pm$ smer. odchýlka.}
+kandidátov. $N_\text{eff}$ a Sharpe sú pre odovzdané (vždy prípustné) portfólio, Sharpe ako
+priemer $\pm$ smer. odchýlka.}
 \label{tab:e2}
 \input{tables/e2.tex}
 \end{table}
@@ -321,17 +339,22 @@ Výsledky (tabuľka~\ref{tab:e2}):
 \begin{itemize}
 \item \textbf{Striktné obmedzenia} dali vo všetkých behoch prípustný výsledok, žiadne ohodnotenie
   sa neminulo na neprípustného kandidáta a dosiahli najvyšší Sharpe na optimalizačnom období
-  (2,34, len o 1\,\% menej ako horný odhad 2,36 z~E1) s~veľmi malým rozptylom medzi behmi.
+  (2,34, len o 1\,\% menej ako orientačný horný odhad 2,36 z~E1) s~veľmi malým rozptylom medzi behmi.
   Prísnejší strop $u=20\,\%$ vynúti rozloženejšie portfóliá ($N_\text{eff}=5{,}8$) za cenu
   1\,\% Sharpe na optimalizačnom období a stále bez jediného neprípustného ohodnotenia.
 \item \textbf{Penalizácia pravidiel} závisí od $\lambda$: pri $\lambda=0{,}01$ je výhodnejšie
   pravidlo porušiť a 10\,\% behov skončilo s neprípustným najlepším kandidátom. Pri vyšších
   $\lambda$ sú výsledky prípustné, ale 6--8\,\% ohodnotení padne na neprípustných kandidátov a
-  priemerný Sharpe je nižší (2,27) s~tridsaťnásobne väčším rozptylom. Penalizácia vytvára
-  na hranici prípustnej oblasti strmé „útesy“, cez ktoré lokálne prehľadávanie ťažko prechádza.
+  priemerný Sharpe je nižší (2,27) s~rádovo väčším rozptylom (smerodajná odchýlka 0,037 oproti
+  0,002). Penalizácia vytvára na hranici prípustnej oblasti strmé „útesy“, cez ktoré lokálne
+  prehľadávanie ťažko prechádza. Výsledky pre $\lambda=0{,}1$ a $\lambda=1$ sú rovnaké: už pri
+  $\lambda=0{,}1$ je pokuta za porušenie väčšia než zisk Sharpe, ktorý by porušenie prinieslo,
+  preto obe hodnoty dovedú behy k~rovnakým portfóliám a líšia sa len podielom neprípustných
+  ohodnotení počas behu.
 \item \textbf{Penalizácia diverzifikácie} ($N_\text{eff}<5$) viedla k~rozloženejším portfóliám
-  ($N_\text{eff}$ 5,0--5,6 oproti 4,3) s~mierne nižším Sharpe na optimalizačnom a mierne vyšším
-  na testovacom období. Rovnaký efekt, ešte o niečo silnejší (test 1,01), však dosiahol aj striktný
+  ($N_\text{eff}$ 5,0--5,6 oproti 4,3) s~mierne nižším Sharpe na optimalizačnom období. Na
+  testovacom období bol pri $\lambda=1$ vyšší (0,97 oproti 0,92), pri $\lambda=0{,}1$ mierne
+  nižší (0,89). Rovnaký efekt, ešte o niečo silnejší (test 1,01), však dosiahol aj striktný
   strop 20\,\% bez penalizácie a bez neprípustných ohodnotení. Lepší test teda súvisí so
   silnejšou diverzifikáciou, nie s penalizáciou ako takou. Ide o jedno testovacie obdobie a
   rozdiely sú menšie ako rozptyl náhodných portfólií (časť~\ref{sec:base}), preto z~nich
@@ -387,7 +410,7 @@ z 10\,000\,USD. Pri priemeroch je pri teste uvedená smerodajná odchýlka cez p
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\textwidth]{figures/random_train_test.png}
+\includegraphics[width=0.8\textwidth]{figures/random_train_test.png}
 \caption{Sharpe 10\,000 náhodných prípustných portfólií na optimalizačnom (os $x$) a testovacom
 (os $y$) období a poloha referenčných metód. $\rho$ je Spearmanova korelácia medzi oboma
 obdobiami.}
@@ -396,23 +419,24 @@ obdobiami.}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\textwidth]{figures/convergence.png}
+\includegraphics[width=0.8\textwidth]{figures/convergence.png}
 \caption{Najlepší Sharpe na optimalizačnom období podľa počtu ohodnotení (priemer cez 20 behov,
 pásmo = minimum až maximum).}
 \label{fig:conv}
 \end{figure}
 
-\paragraph{Čo baseline hovorí o úlohe.}
+\paragraph{Čo baseline hovorí o úlohe.} Výsledky sú v~tabuľke~\ref{tab:base}.
 \begin{itemize}
 \item \textbf{Model aj baseline fungujú}: všetkých 10\,000 náhodných portfólií aj všetky výsledky
   prehľadávaní prešli kontrolou \texttt{check}. Priemerné náhodné portfólio má na teste prakticky
   rovnaký výnos ako 1/N, ale vyššie kolísanie -- 5--10 aktív diverzifikuje horšie ako 30.
 \item \textbf{Optimalizácia na optimalizačnom období funguje}: lokálne prehľadávanie zvýši Sharpe
-  oproti priemeru náhodných portfólií 1,7- až 2,5-násobne a dostane sa na 1--5\,\% od horného
-  odhadu z~E1. Náhodné prehľadávanie zaostáva a medzi behmi kolíše viac
-  (obr.~\ref{fig:conv}). Prvých asi 100 ohodnotení je náhodné prehľadávanie lepšie (lokálne
-  sa ešte len vzďaľuje od náhodného štartu), väčšinu zlepšenia dosiahne lokálne prehľadávanie
-  do 1\,000--2\,000 ohodnotení. Pri 30 aktívach je teda úloha na optimalizačnom období
+  oproti priemeru náhodných portfólií 1,7- až 2,5-násobne a dostane sa na 1--5\,\% od
+  orientačného horného odhadu z~E1. Náhodné prehľadávanie zaostáva a medzi behmi kolíše viac
+  (obr.~\ref{fig:conv}). Prvých asi 150--300 ohodnotení je náhodné prehľadávanie lepšie (lokálne
+  sa ešte len vzďaľuje od náhodného štartu); konečný výsledok náhodného prehľadávania
+  (po 5\,000 ohodnoteniach) prekoná lokálne prehľadávanie v~priemere už po 400--550
+  ohodnoteniach a na 1\,\% od svojej konečnej hodnoty sa dostane po 2\,000--3\,000. Pri 30 aktívach je teda úloha na optimalizačnom období
   pomerne ľahká; rozdiely medzi metódami v míľniku 3 budú viditeľnejšie na väčšej úlohe.
 \item \textbf{Vyšší Sharpe na minulosti neznamená vyšší Sharpe v budúcnosti.} Korelácia medzi
   obdobiami (obr.~\ref{fig:random}) je v~I1 silná (0,77), v~ladiacej a I3 slabá a v~I2 záporná
@@ -424,6 +448,10 @@ pásmo = minimum až maximum).}
   ohodnocovacej funkcie (Sharpe na minulosti je len odhad cieľovej funkcie), nie chyba
   algoritmu. Pri porovnaní metód preto budeme oddelene hodnotiť kvalitu optimalizácie
   (Sharpe na optimalizačnom období pri rovnakom rozpočte) a kvalitu výsledku na teste.
+\item \textbf{Vyšší Sharpe neznamená vyšší zisk.} Maximalizácia Sharpe uprednostňuje aktíva
+  s~nízkym kolísaním (dlhopisy, zlato). V~ladiacej inštancii má lokálne prehľadávanie na teste
+  Sharpe na úrovni 1/N, ale ročný výnos len 5,6\,\% oproti 9,4\,\% a konečnú sumu
+  11\,776 oproti 13\,082\,USD. Pri porovnaní preto uvádzame aj výnos a konečnú sumu.
 \item \textbf{Greedy top-10} zlepší optimalizačné obdobie menej ako prehľadávanie (aktíva s
   vysokým vlastným Sharpe sú často podobné a navzájom korelované). Na teste je v troch
   inštanciách lepší ako priemer náhodných portfólií (v ladiacej najlepší zo všetkých), v~I2 horší.
@@ -433,8 +461,8 @@ pásmo = minimum až maximum).}
 \section{Navrhované metódy pre míľnik 3}
 \label{sec:methods}
 
-Skúsenosti z implementácie: ohodnotenie je lacné (57\,µs), takže si môžeme dovoliť desaťtisíce
-ohodnotení na beh a 20--30 behov; obmedzenia vieme vždy splniť opravou za 65\,µs; plocha
+Skúsenosti z implementácie: ohodnotenie je lacné (desiatky µs), takže si môžeme dovoliť desaťtisíce
+ohodnotení na beh a 20--30 behov; obmedzenia vieme vždy splniť opravou za desiatky µs; plocha
 vhodnosti v~reprezentácii skóre má plošiny (zmena skóre nevybraného aktíva pod prahom nič nemení),
 čo pri lokálnom prehľadávaní rieši prijímanie rovnako dobrých krokov. Úloha má dve vrstvy:
 kombinatorický výber aktív a spojité rozdelenie podielov, pričom pre pevný výber je Sharpe
@@ -484,6 +512,12 @@ väčšie rozdiely medzi metódami.
 \item Máme len tri hodnotiace inštancie a tie sa prekrývajú (optimalizačné obdobia sa čiastočne
   kryjú), výsledky na testovacích obdobiach preto nemožno zovšeobecňovať. Silne závisia od
   toho, čo sa v danom období stalo na trhu (napr. rok 2022 pre dlhopisy).
+\item Sharpeho pomer počítame bez bezrizikovej sadzby. V~rokoch s~vysokými úrokovými sadzbami
+  (napr. 2023--2025) by po jej odpočítaní vyzerali portfóliá s~veľkým podielom dlhopisov horšie,
+  takže nulová sadzba ich mierne zvýhodňuje.
+\item Výsledky lokálneho prehľadávania sú reprodukovateľné pri rovnakých verziách knižníc
+  (\texttt{requirements.txt}); hodnoty $f$ pri porovnávaní zaokrúhľujeme, aby drobné numerické
+  rozdiely medzi počítačmi nemenili rozhodnutia na plošinách.
 \end{itemize}
 
 \paragraph{Rozdelenie práce.} % TODO doplniť

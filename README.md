@@ -46,26 +46,32 @@ Príklady ohodnotenia, kontroly a opravy kandidátov na inštancii I1 (výstup a
 python scripts/examples.py
 ```
 
-Baseline a referenčné prehľadávania na všetkých inštanciách (~10 min; `results/baselines.csv`, grafy v `report/figures/`):
+Baseline a referenčné prehľadávania na všetkých inštanciách (~1,5 min; `results/baselines.csv`, tabuľka `report/tables/baselines.tex`, grafy v `report/figures/`):
 
 ```bash
 python scripts/run_baselines.py
 ```
 
-Experimenty k diverzifikácii a práci s obmedzeniami (E1, E2; ~10 min; `results/e1_*.csv`, `results/e2_*.csv`):
+Experimenty k diverzifikácii a práci s obmedzeniami (E1, E2; ~1 min; `results/e1_*.csv`, `results/e2_*.csv`, tabuľka `report/tables/e2.tex`):
 
 ```bash
 python scripts/experiment_constraints.py
 ```
 
 Dáta sú uložené v `data/prices.csv` (upravené záverečné ceny z Yahoo Finance, dividendy a splity
-zahrnuté, stiahnuté 17. 11. 2026). Znova ich stiahne:
+zahrnuté, stiahnuté 17. 11. 2026). Znova ich stiahne (Yahoo spätne prepočítava upravené ceny
+pri každej dividende, preto nové stiahnutie dá mierne iné hodnoty; výsledky v správe sú
+z priloženého `data/prices.csv`):
 
 ```bash
 python scripts/fetch_data.py
 ```
 
-Všetky náhodné postupy majú pevné seedy, výsledky sú reprodukovateľné.
+Všetky náhodné postupy majú pevné seedy. Výsledky v `results/` a v správe boli vygenerované
+s verziami knižníc v `requirements-lock.txt` (Python 3.13); pri iných verziách sa môžu
+v posledných desatinných miestach líšiť. Lokálne prehľadávanie porovnáva hodnoty Sharpe
+zaokrúhlené na 10 desatinných miest, aby drobné numerické rozdiely medzi počítačmi nemenili
+jeho rozhodnutia.
 Na Windows v PowerShell pred spustením nastavte `$env:PYTHONIOENCODING="utf-8"` (diakritika vo výpisoch).
 
 ## Štruktúra
@@ -79,11 +85,12 @@ src/portfolio/
   baselines.py   1/N, náhodné prípustné portfóliá, greedy top-k, náhodné a lokálne prehľadávanie
 scripts/         spúšťacie skripty (dáta, príklady, baseline, experimenty)
 tests/           unit testy modelu
-results/         výstupy experimentov (CSV, logy, tabuľka pre LaTeX)
+results/         výstupy experimentov (CSV, príklady v examples.txt)
 report/          správa k míľniku 2 (main.tex, figures/)
 ```
 
 ## Správa
 
-`report/main.tex` (LaTeX, rovnaký štýl ako míľnik 1). Tabuľka baseline sa vkladá z
-`report/tables/baselines.tex`, ktorú generuje `run_baselines.py`.
+`report/main.tex` (LaTeX, rovnaký štýl ako míľnik 1). Tabuľky sa vkladajú z
+`report/tables/baselines.tex` (generuje `run_baselines.py`) a `report/tables/e2.tex`
+(generuje `experiment_constraints.py`).
