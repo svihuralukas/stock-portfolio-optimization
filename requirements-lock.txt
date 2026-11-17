@@ -1,0 +1,8 @@
+# Presné verzie, s ktorými boli vygenerované výsledky v results/ a v správe (Python 3.13).
+# Bežná inštalácia: pip install -r requirements.txt
+# Rovnaké verzie:   pip install -r requirements-lock.txt
+numpy==2.5.3
+pandas==3.0.5
+scipy==1.18.1
+matplotlib==3.11.2
+yfinance==1.8.0

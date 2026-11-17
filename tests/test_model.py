@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from portfolio.baselines import random_feasible, top_k_sharpe  # noqa: E402
+from portfolio.baselines import feasible_counts, hill_climb, random_feasible, top_k_sharpe  # noqa: E402
 from portfolio.instance import Instance  # noqa: E402
 from portfolio.model import (Evaluator, check, evaluate, max_drawdown,  # noqa: E402
                              n_eff, portfolio_values, sharpe_from_values)
@@ -147,6 +147,37 @@ class TestRepair(unittest.TestCase):
     def test_random_feasible(self):
         for _ in range(2000):
             self.assertEqual(check(random_feasible(self.inst, self.rng), self.inst), [])
+
+    def test_random_feasible_tight_and_impossible_rules(self):
+        # K * wmax = 1: jediné prípustné riešenie je 5 aktív po 20 % (predtým nekonečný cyklus).
+        tight = self.inst.with_rules(wmax=0.2)
+        self.assertEqual(feasible_counts(tight), [5])
+        for _ in range(200):
+            w = random_feasible(tight, self.rng)
+            self.assertEqual(check(w, tight), [])
+            np.testing.assert_allclose(w[w > 0], 0.2)
+        # Pravidlá, ktoré sa nedajú splniť (5 * 15 % < 100 %), vyhodia chybu namiesto zaseknutia.
+        with self.assertRaises(ValueError):
+            random_feasible(self.inst.with_rules(wmax=0.15), self.rng)
+
+    def test_random_feasible_project_rules(self):
+        # Pravidlá z projektu a prísnejší strop 20 % plánovaný pre míľnik 3 (30 aktív).
+        inst = toy(np.ones((5, 30)) * 10, kmin=5, kmax=10, wmin=0.05, wmax=0.30)
+        for rules in ({}, {"wmax": 0.20}):
+            r = inst.with_rules(**rules)
+            for _ in range(500):
+                self.assertEqual(check(random_feasible(r, self.rng), r), [])
+
+    def test_repair_requires_rng_for_random_fill(self):
+        with self.assertRaises(ValueError):
+            repair(np.array([1.0, 0, 0, 0, 0, 0, 0, 0]), self.inst)
+
+    def test_decoder_fills_by_score(self):
+        # Nad prahom 0,5 je len jedno skóre -> doplnia sa aktíva s najvyšším skóre pod prahom.
+        s = np.array([0.9, 0.1, 0.45, 0.2, 0.3, 0.4, 0.05, 0.0])
+        w = decode_scores(s, self.inst)
+        self.assertEqual(sorted(np.flatnonzero(w).tolist()), [0, 2, 5])
+        self.assertEqual(check(w, self.inst), [])
 
 
 class TestPenaltyAndDiversity(unittest.TestCase):

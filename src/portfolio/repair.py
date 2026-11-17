@@ -32,7 +32,8 @@ def repair(v, inst, rng=None, priority=None):
     1. (O2, O5) záporné podiely a nedostupné aktíva -> 0.
     2. (O3) Ak je vybraných viac ako kmax, ponecháme kmax s najväčším podielom.
        Ak menej ako kmin, doplníme aktíva s najvyššou prioritou (ak je zadaná),
-       inak náhodne vybrané dostupné aktíva.
+       inak náhodne vybrané dostupné aktíva – vtedy treba zadať generátor `rng`
+       (kvôli reprodukovateľnosti nepoužívame generátor bez seedu).
     3. (O1, O4) Podiely vybraných aktív premietneme na najbližší bod so súčtom 1
        a zložkami v [wmin, wmax]; nevybrané majú 0.
     Výsledok vždy spĺňa O1–O5 (pre K v [kmin, kmax] platí K*wmin <= 1 <= K*wmax).
@@ -47,7 +48,8 @@ def repair(v, inst, rng=None, priority=None):
         if priority is not None:
             add = free[np.argsort(-np.asarray(priority)[free], kind="stable")[:need]]
         else:
-            rng = rng if rng is not None else np.random.default_rng()
+            if rng is None:
+                raise ValueError("repair: na náhodné doplnenie aktív treba zadať rng (alebo priority)")
             add = rng.choice(free, size=need, replace=False)
         sel = np.concatenate([sel, add])
     w = np.zeros(inst.n)
