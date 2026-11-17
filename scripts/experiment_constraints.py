@@ -7,7 +7,10 @@ E2: Striktné obmedzenia (oprava/dekóder) vs. penalizácia pravidiel vs. penali
     rovnaký rozpočet ohodnotení, 20 behov; len na ladiacej inštancii (rozhodnutie
     o formulácii nesmie vidieť dáta inštancií zo záverečného porovnania).
 
-    python scripts/experiment_constraints.py
+    python scripts/experiment_constraints.py          # ~1 min
+
+V tabuľke pre správu sú N_eff aj Sharpe pre odovzdané (vždy prípustné) portfólio;
+surové výsledky sú v results/e2_constraint_handling*.csv.
 """
 import sys
 from pathlib import Path
@@ -59,7 +62,7 @@ def e1(instances):
             "N_eff": round(tr["n_eff"], 2),
             "najväčší podiel": round(w.max(), 3),
             "hlavné zložky": ", ".join(f"{inst.assets[i]} {w[i]*100:.0f}%" for i in top if w[i] > 0),
-            "pripustné": not check(w, inst),
+            "prípustné": not check(w, inst),
         })
     df = pd.DataFrame(rows)
     df.to_csv(RES / "e1_unconstrained.csv", index=False)
@@ -116,6 +119,7 @@ def e2(inst):
         raw_k=("surový: aktív", "mean"),
         raw_neff=("surový: N_eff", "mean"),
         raw_max=("surový: max podiel", "mean"),
+        fin_neff=("odovzdaný: N_eff", "mean"),
         fin_train=("odovzdaný: Sharpe train", "mean"),
         fin_train_sd=("odovzdaný: Sharpe train", "std"),
         fin_test=("odovzdaný: Sharpe test", "mean"),
@@ -138,7 +142,7 @@ def write_e2_latex(agg):
         name = (variant.replace("N_eff<5", r"$N_\text{eff}<5$").replace(" %", r"\,\%")
                 .replace("λ=", r"$\lambda=$").replace("0,", "0{,}"))
         lines.append(
-            f"{name} & {r.prip * 100:.0f}\\,\\% & {num(r.neprip_ohodn * 100, 1)}\\,\\% & {num(r.raw_neff)} & "
+            f"{name} & {r.prip * 100:.0f}\\,\\% & {num(r.neprip_ohodn * 100, 1)}\\,\\% & {num(r.fin_neff)} & "
             f"{num(r.fin_train)}\\,$\\pm$\\,{num(r.fin_train_sd, 3)} & {num(r.fin_test)}\\,$\\pm$\\,{num(r.fin_test_sd, 3)}\\\\")
     lines += [r"\bottomrule", r"\end{tabular}"]
     out = ROOT / "report" / "tables" / "e2.tex"
