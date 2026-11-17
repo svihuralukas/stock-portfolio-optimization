@@ -46,13 +46,13 @@ Príklady ohodnotenia, kontroly a opravy kandidátov na inštancii I1 (výstup a
 python scripts/examples.py
 ```
 
-Baseline a referenčné prehľadávania na všetkých inštanciách (~1,5 min; `results/baselines.csv`, tabuľka `report/tables/baselines.tex`, grafy v `report/figures/`):
+Baseline a referenčné prehľadávania na všetkých inštanciách (1–4 min podľa počítača; `results/baselines.csv`, tabuľka `report/tables/baselines.tex`, grafy v `report/figures/`):
 
 ```bash
 python scripts/run_baselines.py
 ```
 
-Experimenty k diverzifikácii a práci s obmedzeniami (E1, E2; ~1 min; `results/e1_*.csv`, `results/e2_*.csv`, tabuľka `report/tables/e2.tex`):
+Experimenty k diverzifikácii a práci s obmedzeniami (E1, E2; 1–4 min podľa počítača; `results/e1_*.csv`, `results/e2_*.csv`, tabuľka `report/tables/e2.tex`):
 
 ```bash
 python scripts/experiment_constraints.py

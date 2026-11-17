@@ -35,8 +35,9 @@ o počte aktív a veľkosti podielov smeruje maximalizácia Sharpe k portfóliá
 efektívnymi aktívami (napr. 83\,\% v jednom dlhopisovom ETF). Striktné obmedzenia dali
 pri rovnakom algoritme a rozpočte vždy prípustný výsledok, vyšší Sharpe a výrazne stabilnejšie
 behy než penalizácia, preto ich ponechávame. Baseline ukazuje hlavný jav úlohy: optimalizácia
-zvýši Sharpe na optimalizačnom období z~0,5--0,9 na 0,9--2,3, ale na testovacom období prekoná
-1/N aj priemer náhodných portfólií len v dvoch zo štyroch inštancií.
+zvýši Sharpe na optimalizačnom období z~0,5--0,9 na 0,9--2,3, ale na testovacom období je
+výrazne lepšia ako 1/N aj priemer náhodných portfólií len v~I1 a I3; v~ladiacej inštancii je
+na úrovni 1/N a v~I2 horšia.
 \end{abstract}
 
 % =====================================================================================
@@ -88,7 +89,7 @@ a odchýlku cez 20 behov (časť~\ref{sec:base}). \\
 Zohľadniť mieru diverzifikácie bez ohľadu na výnos? &
 Zaviedli sme efektívny počet aktív $N_\text{eff}=1/\sum_i w_i^2$, uvádzame ho pri každom
 výsledku a vyskúšali sme ho ako penalizáciu (E2). \\
-Penalizovať nízku diverzifikáciu (napr. portfólio z~1--2 aktív), alebo použiť pevné limity? &
+Penalizácia (1--2 aktíva áno, 3 nie) alebo pevné limity? &
 Porovnali sme oboje na ladiacej inštancii. Vyhrali pevné limity (časť~\ref{sec:div}). \\
 \bottomrule
 \end{tabularx}
@@ -163,8 +164,8 @@ a sektory XLK, XLE, XLV, XLF, XLP. Všetky aktíva majú vo všetkých inštanci
 obdobia, pravidlo O5 teda žiadne aktívum nevylučuje (je však implementované).
 
 Ladiaca inštancia používa len dáta do roku 2017, kým všetky testovacie obdobia hodnotiacich
-inštancií začínajú v~roku 2018. Ladenie metód a rozhodnutia o formulácii preto nevidia žiadne
-dáta, na ktorých metódy záverečne hodnotíme.
+inštancií začínajú v~roku 2018. Ladenie metód a rozhodnutia o formulácii preto nevidia dáta
+testovacích období.
 
 \begin{table}[h]
 \centering\small
@@ -347,9 +348,9 @@ Výsledky (tabuľka~\ref{tab:e2}):
   $\lambda$ sú výsledky prípustné, ale 6--8\,\% ohodnotení padne na neprípustných kandidátov a
   priemerný Sharpe je nižší (2,27) s~rádovo väčším rozptylom (smerodajná odchýlka 0,037 oproti
   0,002). Penalizácia vytvára na hranici prípustnej oblasti strmé „útesy“, cez ktoré lokálne
-  prehľadávanie ťažko prechádza. Výsledky pre $\lambda=0{,}1$ a $\lambda=1$ sú rovnaké: už pri
-  $\lambda=0{,}1$ je pokuta za porušenie väčšia než zisk Sharpe, ktorý by porušenie prinieslo,
-  preto obe hodnoty dovedú behy k~rovnakým portfóliám a líšia sa len podielom neprípustných
+  prehľadávanie ťažko prechádza. Výsledky pre $\lambda=0{,}1$ a $\lambda=1$ sú takmer rovnaké. Pravdepodobnou
+  príčinou je, že už pri $\lambda=0{,}1$ je pokuta za porušenie väčšia než zisk Sharpe, ktorý by
+  porušenie prinieslo, preto obe hodnoty dovedú behy k~takmer rovnakým portfóliám a líšia sa len podielom neprípustných
   ohodnotení počas behu.
 \item \textbf{Penalizácia diverzifikácie} ($N_\text{eff}<5$) viedla k~rozloženejším portfóliám
   ($N_\text{eff}$ 5,0--5,6 oproti 4,3) s~mierne nižším Sharpe na optimalizačnom období. Na
@@ -434,9 +435,10 @@ pásmo = minimum až maximum).}
   oproti priemeru náhodných portfólií 1,7- až 2,5-násobne a dostane sa na 1--5\,\% od
   orientačného horného odhadu z~E1. Náhodné prehľadávanie zaostáva a medzi behmi kolíše viac
   (obr.~\ref{fig:conv}). Prvých asi 150--300 ohodnotení je náhodné prehľadávanie lepšie (lokálne
-  sa ešte len vzďaľuje od náhodného štartu); konečný výsledok náhodného prehľadávania
-  (po 5\,000 ohodnoteniach) prekoná lokálne prehľadávanie v~priemere už po 400--550
-  ohodnoteniach a na 1\,\% od svojej konečnej hodnoty sa dostane po 2\,000--3\,000. Pri 30 aktívach je teda úloha na optimalizačnom období
+  sa ešte len vzďaľuje od náhodného štartu). Lokálne prehľadávanie prekoná konečný výsledok
+  náhodného prehľadávania (po 5\,000 ohodnoteniach) v~priemere už po 400--550 ohodnoteniach
+  a na 1\,\% od svojej konečnej hodnoty sa dostane po približne 2\,000--3\,000 ohodnoteniach.
+  Pri 30 aktívach je teda úloha na optimalizačnom období
   pomerne ľahká; rozdiely medzi metódami v míľniku 3 budú viditeľnejšie na väčšej úlohe.
 \item \textbf{Vyšší Sharpe na minulosti neznamená vyšší Sharpe v budúcnosti.} Korelácia medzi
   obdobiami (obr.~\ref{fig:random}) je v~I1 silná (0,77), v~ladiacej a I3 slabá a v~I2 záporná
@@ -515,9 +517,10 @@ väčšie rozdiely medzi metódami.
 \item Sharpeho pomer počítame bez bezrizikovej sadzby. V~rokoch s~vysokými úrokovými sadzbami
   (napr. 2023--2025) by po jej odpočítaní vyzerali portfóliá s~veľkým podielom dlhopisov horšie,
   takže nulová sadzba ich mierne zvýhodňuje.
-\item Výsledky lokálneho prehľadávania sú reprodukovateľné pri rovnakých verziách knižníc
-  (\texttt{requirements.txt}); hodnoty $f$ pri porovnávaní zaokrúhľujeme, aby drobné numerické
-  rozdiely medzi počítačmi nemenili rozhodnutia na plošinách.
+\item Výsledky lokálneho prehľadávania sú reprodukovateľné pri verziách knižníc
+  z~\texttt{requirements-lock.txt}; hodnoty $f$ pri porovnávaní zaokrúhľujeme, aby drobné numerické
+  rozdiely medzi počítačmi nemenili rozhodnutia na plošinách. Výsledky lokálneho prehľadávania
+  a experimentov E1, E2 vyšli rovnako aj pri numpy~2.1 a Pythone~3.12.
 \end{itemize}
 
 \paragraph{Rozdelenie práce.} % TODO doplniť
