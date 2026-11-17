@@ -1,0 +1,35 @@
+Inštancia I1: optimalizácia 2014-01-02..2017-12-29, test 2018-01-02..2020-12-31
+Aktíva: SPY, IWM, VGK, EWJ, EEM, AGG, TLT, LQD, GLD, VNQ, XLK, XLE, XLV, XLF, XLP, AAPL, XOM, GOOGL, MSFT, BRK-B, GE, JNJ, WMT, CVX, WFC, JPM, PG, IBM, VZ, PFE
+
+--- A) prípustný kandidát (príklad z míľnika 1)
+    portfólio: SPY 30.0 %, VGK 20.0 %, GLD 15.0 %, MSFT 20.0 %, JNJ 15.0 %
+    kontrola:  prípustné
+    train: Sharpe 1.141, ročný výnos 13.1 %, kolísanie 11.3 %, prepad 11.7 %, konečná hodnota 16342 USD, N_eff 4.65
+    test : Sharpe 0.875, ročný výnos 17.1 %, kolísanie 20.4 %, prepad 27.1 %, konečná hodnota 16031 USD, N_eff 4.65
+--- B) 100 % v jednom aktíve (najlepší Sharpe spomedzi jednotlivých aktív)
+    portfólio: MSFT 100.0 %
+    kontrola:  O3 počet aktív 1 mimo [5, 10]; O4 podiel mimo [0.05, 0.3]: MSFT=1.0000
+    train: Sharpe 1.189, ročný výnos 26.4 %, kolísanie 21.7 %, prepad 18.1 %, konečná hodnota 25517 USD, N_eff 1.00
+    test : Sharpe 1.190, ročný výnos 39.3 %, kolísanie 32.2 %, prepad 28.0 %, konečná hodnota 26998 USD, N_eff 1.00
+--- C) dve akcie 60/40
+    portfólio: AAPL 40.0 %, MSFT 60.0 %
+    kontrola:  O3 počet aktív 2 mimo [5, 10]; O4 podiel mimo [0.05, 0.3]: AAPL=0.4000, MSFT=0.6000
+    train: Sharpe 1.291, ročný výnos 25.2 %, kolísanie 18.8 %, prepad 18.1 %, konečná hodnota 24551 USD, N_eff 1.92
+    test : Sharpe 1.289, ročný výnos 42.7 %, kolísanie 31.4 %, prepad 28.6 %, konečná hodnota 29006 USD, N_eff 1.92
+    oprava -> XLP 13.3 %, AAPL 30.0 %, MSFT 30.0 %, BRK-B 13.3 %, WFC 13.3 %
+--- D) súčet 100 %, ale dva podiely pod 5 %
+    portfólio: SPY 25.0 %, TLT 25.0 %, GLD 25.0 %, AAPL 3.0 %, MSFT 2.0 %, JNJ 20.0 %
+    kontrola:  O4 podiel mimo [0.05, 0.3]: AAPL=0.0300, MSFT=0.0200
+    train: Sharpe 1.457, ročný výnos 10.0 %, kolísanie 6.7 %, prepad 8.9 %, konečná hodnota 14644 USD, N_eff 4.37
+    test : Sharpe 1.212, ročný výnos 13.3 %, kolísanie 10.8 %, prepad 13.9 %, konečná hodnota 14547 USD, N_eff 4.37
+    oprava -> SPY 23.8 %, TLT 23.8 %, GLD 23.8 %, AAPL 5.0 %, MSFT 5.0 %, JNJ 18.8 %
+--- E) rovnomerne všetkých 30 aktív (referencia 1/N)
+    portfólio: SPY 3.3 %, IWM 3.3 %, VGK 3.3 %, EWJ 3.3 %, EEM 3.3 %, AGG 3.3 %, TLT 3.3 %, LQD 3.3 %, GLD 3.3 %, VNQ 3.3 %, XLK 3.3 %, XLE 3.3 %, XLV 3.3 %, XLF 3.3 %, XLP 3.3 %, AAPL 3.3 %, XOM 3.3 %, GOOGL 3.3 %, MSFT 3.3 %, BRK-B 3.3 %, GE 3.3 %, JNJ 3.3 %, WMT 3.3 %, CVX 3.3 %, WFC 3.3 %, JPM 3.3 %, PG 3.3 %, IBM 3.3 %, VZ 3.3 %, PFE 3.3 %
+    kontrola:  O3 počet aktív 30 mimo [5, 10]; O4 podiel mimo [0.05, 0.3]: SPY=0.0333, IWM=0.0333, VGK=0.0333, EWJ=0.0333, EEM=0.0333, AGG=0.0333, TLT=0.0333, LQD=0.0333, GLD=0.0333, VNQ=0.0333, XLK=0.0333, XLE=0.0333, XLV=0.0333, XLF=0.0333, XLP=0.0333, AAPL=0.0333, XOM=0.0333, GOOGL=0.0333, MSFT=0.0333, BRK-B=0.0333, GE=0.0333, JNJ=0.0333, WMT=0.0333, CVX=0.0333, WFC=0.0333, JPM=0.0333, PG=0.0333, IBM=0.0333, VZ=0.0333, PFE=0.0333
+    train: Sharpe 0.987, ročný výnos 9.8 %, kolísanie 10.0 %, prepad 11.8 %, konečná hodnota 14518 USD, N_eff 30.00
+    test : Sharpe 0.587, ročný výnos 9.6 %, kolísanie 18.6 %, prepad 28.0 %, konečná hodnota 13171 USD, N_eff 30.00
+    oprava -> SPY 10.0 %, IWM 10.0 %, VGK 10.0 %, EWJ 10.0 %, EEM 10.0 %, AGG 10.0 %, TLT 10.0 %, LQD 10.0 %, GLD 10.0 %, VNQ 10.0 %  (ponechá 10 aktív – pri zhode podielov prvých 10)
+--- F) dekóder: náhodné skóre -> portfólio
+    skóre nad 0,5: 17 aktív -> ponecháme 10 s najvyšším skóre
+    portfólio: SPY 5.0 %, VGK 8.3 %, AGG 20.0 %, LQD 5.0 %, XLE 15.1 %, XLF 5.0 %, MSFT 5.2 %, WMT 19.5 %, CVX 11.8 %, WFC 5.0 %
+    kontrola:  prípustné

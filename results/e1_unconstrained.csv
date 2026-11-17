@@ -1,0 +1,5 @@
+inštancia,najlepšie 1 aktívum,Sharpe max (bez O3/O4),aktív > 0,N_eff,najväčší podiel,hlavné zložky,pripustné
+ladiaca,XLV (1.51),2.36,9,2.71,0.564,"AGG 56%, XLV 17%, TLT 13%, XLP 8%",False
+I1,XLK (1.23),2.05,5,1.44,0.828,"AGG 83%, JPM 8%, JNJ 4%, MSFT 3%",False
+I2,AAPL (1.40),1.83,7,3.25,0.485,"TLT 48%, GLD 23%, AAPL 11%, PG 6%",False
+I3,AAPL (0.89),0.95,4,3.02,0.484,"GLD 48%, AAPL 22%, MSFT 20%, XOM 10%",False
