@@ -11,22 +11,48 @@ def equal_weight_all(inst):
     return w / w.sum()
 
 
-def random_feasible(inst, rng):
+def feasible_counts(inst):
+    """Počty aktív K z [kmin, kmax], pri ktorých sa dá splniť súčet 1 s podielmi v [wmin, wmax].
+
+    Podmienka je K * wmin <= 1 <= K * wmax (a K nesmie byť väčšie ako počet dostupných aktív).
+    Pri základných pravidlách (5–10 aktív, 5–30 %) vyhovujú všetky K; napr. pri wmax = 0,2
+    vyhovuje K = 5 len s rovnakými podielmi 20 %.
+    """
+    n_avail = int(inst.available.sum())
+    return [k for k in range(inst.kmin, inst.kmax + 1)
+            if k <= n_avail and k * inst.wmin <= 1.0 + 1e-12 and k * inst.wmax >= 1.0 - 1e-12]
+
+
+def random_feasible(inst, rng, max_tries=100_000):
     """Náhodné prípustné portfólio, rovnomerne rozdelené pre daný výber aktív.
 
-    K ~ U{kmin..kmax}, K aktív náhodne. Podiely: w = wmin + (1 - K*wmin) * d,
-    d ~ Dirichlet(1,...,1) (rovnomerne na simplexe); kandidátov s niektorým
-    w_i > wmax zamietneme. Afínny obraz rovnomerného rozdelenia so zamietnutím je
-    rovnomerné rozdelenie na množine prípustných podielov – žiadna oprava netreba.
+    K náhodne z prípustných počtov (pri základných pravidlách K ~ U{kmin..kmax}),
+    K aktív náhodne. Podiely: w = wmin + (1 - K*wmin) * d, d ~ Dirichlet(1,...,1)
+    (rovnomerne na simplexe); kandidátov s niektorým w_i > wmax zamietneme. Afínny obraz
+    rovnomerného rozdelenia so zamietnutím je rovnomerné rozdelenie na množine prípustných
+    podielov – žiadna oprava nie je potrebná. Ak K * wmax = 1, jediné prípustné podiely
+    sú rovnaké (wmax pre každé aktívum).
     """
+    counts = feasible_counts(inst)
+    if not counts:
+        raise ValueError("pri týchto pravidlách neexistuje prípustné portfólio")
     avail = np.flatnonzero(inst.available)
-    k = int(rng.integers(inst.kmin, inst.kmax + 1))
+    if len(counts) == inst.kmax - inst.kmin + 1:
+        k = int(rng.integers(inst.kmin, inst.kmax + 1))
+    else:
+        k = counts[int(rng.integers(len(counts)))]
     idx = rng.choice(avail, size=k, replace=False)
-    while True:
-        d = rng.dirichlet(np.ones(k))
-        ws = inst.wmin + (1.0 - k * inst.wmin) * d
-        if ws.max() <= inst.wmax:
-            break
+    if k * inst.wmax <= 1.0 + 1e-12:              # jediné riešenie: všetky podiely = wmax
+        ws = np.full(k, 1.0 / k)
+    else:
+        for _ in range(max_tries):
+            d = rng.dirichlet(np.ones(k))
+            ws = inst.wmin + (1.0 - k * inst.wmin) * d
+            if ws.max() <= inst.wmax:
+                break
+        else:
+            raise RuntimeError(f"po {max_tries} pokusoch sa nenašli podiely pre K={k} "
+                               f"v [{inst.wmin}, {inst.wmax}]")
     w = np.zeros(inst.n)
     w[idx] = ws
     return w
