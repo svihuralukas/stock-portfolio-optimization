@@ -104,6 +104,18 @@ def _mutate(v, rng, sigma=0.1, rate=None):
     return out
 
 
+ROUND = 10   # desatinné miesta pri porovnávaní hodnôt f (pozri hill_climb)
+
+
+def _key(value):
+    """Hodnota f zaokrúhlená na porovnanie.
+
+    Rôzne verzie numpy/BLAS dávajú pri tom istom kandidátovi rozdiely okolo 1e-15.
+    Pri prijímaní rovnako dobrých krokov (>=) na plošinách by také rozdiely rozhodli
+    inak a behy by sa na rôznych počítačoch rozišli; zaokrúhlenie to odstráni."""
+    return round(float(value), ROUND)
+
+
 def hill_climb(inst, budget, rng, handling="repair", lam=1.0, violation=violation_rules, trace=None):
     """(1+1) lokálne prehľadávanie v priestore skóre v z [0, 1]^n.
 
@@ -138,9 +150,9 @@ def hill_climb(inst, budget, rng, handling="repair", lam=1.0, violation=violatio
         f2 = fitness(w2)
         if check(w2, inst):
             infeasible_evals += 1
-        elif f2 > best_feasible_f:         # prípustný => penalizácia je 0, f2 = Sharpe
+        elif _key(f2) > _key(best_feasible_f):   # prípustný => penalizácia je 0, f2 = Sharpe
             best_feasible, best_feasible_f = w2, f2
-        if f2 >= fv:                       # >= : prechádzame aj po plošinách
+        if _key(f2) >= _key(fv):         # >= : prechádzame aj po plošinách
             v, w, fv = v2, w2, f2
         if trace is not None:
             trace[f.count - 1] = fv
