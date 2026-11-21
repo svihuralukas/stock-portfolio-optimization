@@ -6,7 +6,7 @@
   * greedy: 10 aktív s najvyšším vlastným Sharpe, po 10 %,
   * náhodné prehľadávanie (najlepší z 5 000) a (1+1) lokálne prehľadávanie, 20 behov.
 
-    python scripts/run_baselines.py          # ~3 min; tabuľky a grafy do results/
+    python scripts/run_baselines.py          # ~1,5 min; tabuľky do results/ a report/tables/, grafy do report/figures/
 """
 import sys
 import time
@@ -18,6 +18,8 @@ import pandas as pd
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+
+plt.rcParams.update({"font.size": 10, "axes.titlesize": 11, "legend.fontsize": 9})
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -59,7 +61,7 @@ def random_search_trace(inst, rng):
 
 
 def hill_climb_trace(inst, rng):
-    """Lokálne prehľadávanie s oprávou; priebeh najlepšieho Sharpe po ohodnoteniach."""
+    """Lokálne prehľadávanie s opravou; priebeh najlepšieho Sharpe po ohodnoteniach."""
     trace = np.empty(BUDGET)
     res = hill_climb(inst, BUDGET, rng, handling="repair", trace=trace)
     return res["w"], trace
@@ -145,7 +147,8 @@ def write_latex(df):
 
 def plot_random(tables, df):
     names = list(tables)
-    fig, axes = plt.subplots(1, len(names), figsize=(13, 3.2), sharey=False)
+    fig, axes = plt.subplots(2, 2, figsize=(9, 7.2))
+    axes = axes.ravel()
     for ax, n in zip(axes, names):
         t = tables[n]
         ax.scatter(t["train"], t["test"], s=2, alpha=0.25, color="#7f8c8d", label="náhodné prípustné")
@@ -153,20 +156,23 @@ def plot_random(tables, df):
         for key, color, marker in [("1/N", "#c0392b", "s"), ("greedy", "#8e44ad", "D"),
                                    ("náhodné preh", "#2980b9", "o"), ("lokálne", "#27ae60", "^")]:
             r = part[part["metóda"].str.startswith(key)].iloc[0]
-            ax.scatter(r.train_sharpe, r.test_sharpe, color=color, marker=marker, s=45,
+            ax.scatter(r.train_sharpe, r.test_sharpe, color=color, marker=marker, s=55,
                        edgecolor="black", linewidth=0.5, label=r["metóda"].split(" (")[0], zorder=3)
         ax.set_title(f"{n} (ρ = {t.corr(method='spearman').iloc[0, 1]:.2f})")
-        ax.set_xlabel("Sharpe – optimalizačné obdobie")
         ax.grid(alpha=0.3)
-    axes[0].set_ylabel("Sharpe – testovacie obdobie")
-    axes[-1].legend(fontsize=7, loc="lower right", markerscale=1)
+    for ax in axes[2:]:
+        ax.set_xlabel("Sharpe – optimalizačné obdobie")
+    for ax in axes[::2]:
+        ax.set_ylabel("Sharpe – testovacie obdobie")
+    axes[-1].legend(loc="lower right", markerscale=1.5)
     fig.tight_layout()
-    fig.savefig(FIG / "random_train_test.png", dpi=160)
+    fig.savefig(FIG / "random_train_test.png", dpi=200)
     plt.close(fig)
 
 
 def plot_traces(traces):
-    fig, axes = plt.subplots(1, len(traces), figsize=(13, 2.8))
+    fig, axes = plt.subplots(2, 2, figsize=(9, 6))
+    axes = axes.ravel()
     x = np.arange(1, BUDGET + 1)
     for ax, (n, (rs, hc)) in zip(axes, traces.items()):
         for arr, label, color in [(rs, "náhodné prehľadávanie", "#2980b9"), (hc, "lokálne prehľadávanie", "#27ae60")]:
@@ -175,12 +181,14 @@ def plot_traces(traces):
             ax.fill_between(x, arr.min(0), arr.max(0), color=color, alpha=0.2)
         ax.set_xscale("log")
         ax.set_title(n)
-        ax.set_xlabel("počet ohodnotení")
         ax.grid(alpha=0.3)
-    axes[0].set_ylabel("najlepší Sharpe (train)")
-    axes[0].legend(fontsize=7)
+    for ax in axes[2:]:
+        ax.set_xlabel("počet ohodnotení")
+    for ax in axes[::2]:
+        ax.set_ylabel("najlepší Sharpe (opt.)")
+    axes[0].legend(loc="lower right")
     fig.tight_layout()
-    fig.savefig(FIG / "convergence.png", dpi=160)
+    fig.savefig(FIG / "convergence.png", dpi=200)
     plt.close(fig)
 
 

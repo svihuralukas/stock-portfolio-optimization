@@ -11,22 +11,48 @@ def equal_weight_all(inst):
     return w / w.sum()
 
 
-def random_feasible(inst, rng):
+def feasible_counts(inst):
+    """Počty aktív K z [kmin, kmax], pri ktorých sa dá splniť súčet 1 s podielmi v [wmin, wmax].
+
+    Podmienka je K * wmin <= 1 <= K * wmax (a K nesmie byť väčšie ako počet dostupných aktív).
+    Pri základných pravidlách (5–10 aktív, 5–30 %) vyhovujú všetky K; napr. pri wmax = 0,2
+    vyhovuje K = 5 len s rovnakými podielmi 20 %.
+    """
+    n_avail = int(inst.available.sum())
+    return [k for k in range(inst.kmin, inst.kmax + 1)
+            if k <= n_avail and k * inst.wmin <= 1.0 + 1e-12 and k * inst.wmax >= 1.0 - 1e-12]
+
+
+def random_feasible(inst, rng, max_tries=100_000):
     """Náhodné prípustné portfólio, rovnomerne rozdelené pre daný výber aktív.
 
-    K ~ U{kmin..kmax}, K aktív náhodne. Podiely: w = wmin + (1 - K*wmin) * d,
-    d ~ Dirichlet(1,...,1) (rovnomerne na simplexe); kandidátov s niektorým
-    w_i > wmax zamietneme. Afínny obraz rovnomerného rozdelenia so zamietnutím je
-    rovnomerné rozdelenie na množine prípustných podielov – žiadna oprava netreba.
+    K náhodne z prípustných počtov (pri základných pravidlách K ~ U{kmin..kmax}),
+    K aktív náhodne. Podiely: w = wmin + (1 - K*wmin) * d, d ~ Dirichlet(1,...,1)
+    (rovnomerne na simplexe); kandidátov s niektorým w_i > wmax zamietneme. Afínny obraz
+    rovnomerného rozdelenia so zamietnutím je rovnomerné rozdelenie na množine prípustných
+    podielov – žiadna oprava nie je potrebná. Ak K * wmax = 1, jediné prípustné podiely
+    sú rovnaké (wmax pre každé aktívum).
     """
+    counts = feasible_counts(inst)
+    if not counts:
+        raise ValueError("pri týchto pravidlách neexistuje prípustné portfólio")
     avail = np.flatnonzero(inst.available)
-    k = int(rng.integers(inst.kmin, inst.kmax + 1))
+    if len(counts) == inst.kmax - inst.kmin + 1:
+        k = int(rng.integers(inst.kmin, inst.kmax + 1))
+    else:
+        k = counts[int(rng.integers(len(counts)))]
     idx = rng.choice(avail, size=k, replace=False)
-    while True:
-        d = rng.dirichlet(np.ones(k))
-        ws = inst.wmin + (1.0 - k * inst.wmin) * d
-        if ws.max() <= inst.wmax:
-            break
+    if k * inst.wmax <= 1.0 + 1e-12:              # jediné riešenie: všetky podiely = wmax
+        ws = np.full(k, 1.0 / k)
+    else:
+        for _ in range(max_tries):
+            d = rng.dirichlet(np.ones(k))
+            ws = inst.wmin + (1.0 - k * inst.wmin) * d
+            if ws.max() <= inst.wmax:
+                break
+        else:
+            raise RuntimeError(f"po {max_tries} pokusoch sa nenašli podiely pre K={k} "
+                               f"v [{inst.wmin}, {inst.wmax}]")
     w = np.zeros(inst.n)
     w[idx] = ws
     return w
@@ -78,6 +104,18 @@ def _mutate(v, rng, sigma=0.1, rate=None):
     return out
 
 
+ROUND = 10   # desatinné miesta pri porovnávaní hodnôt f (pozri hill_climb)
+
+
+def _key(value):
+    """Hodnota f zaokrúhlená na porovnanie.
+
+    Rôzne verzie numpy/BLAS dávajú pri tom istom kandidátovi rozdiely okolo 1e-15.
+    Pri prijímaní rovnako dobrých krokov (>=) na plošinách by také rozdiely rozhodli
+    inak a behy by sa na rôznych počítačoch rozišli; zaokrúhlenie to odstráni."""
+    return round(float(value), ROUND)
+
+
 def hill_climb(inst, budget, rng, handling="repair", lam=1.0, violation=violation_rules, trace=None):
     """(1+1) lokálne prehľadávanie v priestore skóre v z [0, 1]^n.
 
@@ -112,9 +150,9 @@ def hill_climb(inst, budget, rng, handling="repair", lam=1.0, violation=violatio
         f2 = fitness(w2)
         if check(w2, inst):
             infeasible_evals += 1
-        elif f2 > best_feasible_f:         # prípustný => penalizácia je 0, f2 = Sharpe
+        elif _key(f2) > _key(best_feasible_f):   # prípustný => penalizácia je 0, f2 = Sharpe
             best_feasible, best_feasible_f = w2, f2
-        if f2 >= fv:                       # >= : prechádzame aj po plošinách
+        if _key(f2) >= _key(fv):         # >= : prechádzame aj po plošinách
             v, w, fv = v2, w2, f2
         if trace is not None:
             trace[f.count - 1] = fv
