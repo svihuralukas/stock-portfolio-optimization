@@ -93,4 +93,4 @@ report/          správa k míľniku 2 (main.tex, figures/)
 
 `report/main.tex` (LaTeX, rovnaký štýl ako míľnik 1). Tabuľky sa vkladajú z
 `report/tables/baselines.tex` (generuje `run_baselines.py`) a `report/tables/e2.tex`
-(generuje `experiment_constraints.py`).
+(generuje `experiment_constraints.py`). Kompiluje sa cez XeLaTeX.
