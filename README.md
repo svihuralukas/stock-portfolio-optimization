@@ -24,11 +24,11 @@ testovacom období (3 roky, resp. 2 roky pri I3).
 | baseline | `src/portfolio/baselines.py`, `scripts/run_baselines.py`, `results/baselines.csv` |
 | overenie na príkladoch | `tests/test_model.py`, `scripts/examples.py`, `results/examples.txt` |
 | penalizácia vs. striktné obmedzenia (spätná väzba) | `scripts/experiment_constraints.py`, `results/e1_*.csv`, `results/e2_*.csv` |
-| návrh ďalších metód, správa | `report/main.tex`, `report/main.pdf` (časť 8) |
+| návrh ďalších metód, správa | `report/main.tex`, `report/main.pdf` (časť 7) |
 
 ## Spustenie
 
-Python 3.10+.
+Python 3.10+ (s `requirements.txt`). Presné verzie z `requirements-lock.txt` vyžadujú Python 3.11+.
 
 ```bash
 pip install -r requirements.txt
@@ -46,13 +46,13 @@ Príklady ohodnotenia, kontroly a opravy kandidátov na inštancii I1 (výstup a
 python scripts/examples.py
 ```
 
-Baseline a referenčné prehľadávania na všetkých inštanciách (1–4 min podľa počítača; `results/baselines.csv`, tabuľka `report/tables/baselines.tex`, grafy v `report/figures/`):
+Baseline a referenčné prehľadávania na všetkých inštanciách (asi 2–8 min podľa počítača; `results/baselines.csv`, tabuľka `report/tables/baselines.tex`, grafy v `report/figures/`):
 
 ```bash
 python scripts/run_baselines.py
 ```
 
-Experimenty k diverzifikácii a práci s obmedzeniami (E1, E2; 1–4 min podľa počítača; `results/e1_*.csv`, `results/e2_*.csv`, tabuľka `report/tables/e2.tex`):
+Experimenty k diverzifikácii a práci s obmedzeniami (E1, E2; asi 2–8 min podľa počítača; `results/e1_*.csv`, `results/e2_*.csv`, tabuľka `report/tables/e2.tex`):
 
 ```bash
 python scripts/experiment_constraints.py
@@ -93,4 +93,4 @@ report/          správa k míľniku 2 (main.tex, figures/)
 
 `report/main.tex` (LaTeX, rovnaký štýl ako míľnik 1). Tabuľky sa vkladajú z
 `report/tables/baselines.tex` (generuje `run_baselines.py`) a `report/tables/e2.tex`
-(generuje `experiment_constraints.py`). Kompiluje sa cez XeLaTeX.
+(generuje `experiment_constraints.py`). Kompiluje sa cez XeLaTeX alebo LuaLaTeX (nie pdfLaTeX).

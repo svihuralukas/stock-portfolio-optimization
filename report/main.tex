@@ -35,103 +35,86 @@ Moderné prístupy v optimalizácii, zadanie č.\,2, míľnik č.\,2\\[2pt]
 Lukáš Švihura, Dominik Keil, Ján Hrbál
 \end{center}
 
-\section{Reakcia na spätnú väzbu k míľniku 1}
-
-\begin{table}[!ht]
-\centering\small
-\caption{Pripomienky k míľniku 1 (opravená správa a konzultácia) a naša reakcia.}
-\label{tab:feedback}
-\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{4.6cm}L@{}}
-\toprule
-Pripomienka & Reakcia \\
-\midrule
-Prečo kupovať aj časti akcií? &
-Najmenší povolený podiel je 500\,USD, ale napr. jedna akcia Amazonu stála začiatkom roka 2020 asi
-1\,900\,USD. Bez častí akcií by sa niektoré aktíva nedali kúpiť; väčšina brokerov ich ponúka. \\
-Dane neuvažujeme. &
-Daň závisí od krajiny, nie od metódy. Konečnú sumu zníži všetkým metódam podobne a Sharpeho pomer
-takmer nemení. Uvádzame ju medzi obmedzeniami záverov. \\
-Načo hodnota áno/nie? &
-Bola zbytočná. Kandidát je už len zoznam 30 podielov; aktívum je vybrané, ak má podiel väčší ako 0. \\
-Neskončí optimalizácia so 100\,\% v jednom aktíve? &
-Overili sme to (E1, časť~\ref{sec:div}): nie v jednom, ale v 2--5 aktívach, z ktorých jedno dostane až
-83\,\%. Preto pravidlá o počte aktív a veľkosti podielu (O3, O4) ponechávame. \\
-Sú podiely diskrétne? &
-Nie. Podiel je buď 0, alebo ľubovoľné číslo od 5\,\% do 30\,\%. \\
-Argument o prípustnosti nie je jasný. &
-Prepísali sme ho zvlášť pre každý počet aktív (časť~\ref{sec:form}). \\
-Ako opravovať a penalizovať? &
-Oboje sme naprogramovali (časť~\ref{sec:impl}) a porovnali (E2). \\
-Je hodnotenie deterministické? &
-Áno, zaradenie sme opravili. Náhodná je len skutočná budúcnosť, preto testujeme na oddelenom období. \\
-Platný kandidát na konci? &
-Pri oprave je platný každý kandidát; pri penalizácii vraciame najlepšieho \emph{prípustného}.
-Výsledok každej metódy ešte overí kontrolná funkcia. \\
-Priemer z veľa náhodných, nie najlepší. &
-Hlavný baseline je priemer 10\,000 náhodných prípustných portfólií. \\
-Zohľadniť diverzifikáciu bez ohľadu na výnos? &
-Pri každom výsledku uvádzame efektívny počet aktív (časť~\ref{sec:form}); vyskúšali sme ho aj ako
-penalizáciu (E2). \\
-Penalizácia alebo pevné limity? (konzultácia) &
-Porovnali sme oboje (E2), lepšie vyšli pevné limity. \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\section{Upresnená formulácia}
+\section{Úloha a jej formulácia}
 \label{sec:form}
 
-\textbf{Kandidát} je zoznam 30 podielov, jeden pre každé aktívum (napr. 0,30 znamená 30\,\% rozpočtu).
-Na začiatku obdobia kúpime za každý podiel príslušnú časť z 10\,000\,USD a portfólio potom bez zmien
-držíme. Hodnota portfólia v deň $t$ je
-\[
-  \text{hodnota}(t)=10\,000\cdot\sum_{\text{aktíva}}\text{podiel}\cdot
-  \frac{\text{cena}(t)}{\text{cena v prvý deň}} ,
-\]
-teda každé aktívum zarobí (alebo stratí) toľko percent, o koľko sa zmenila jeho cena.
+Na začiatku obdobia jednorazovo rozdelíme 10\,000\,USD medzi niekoľko akcií a indexových fondov (ETF),
+portfólio potom bez zmien držíme a na konci ho predáme. Rozhodujeme, do ktorých aktív investovať
+a koľko do každého, aby malo portfólio čo najlepší pomer výnosu a rizika. Historické dáta delíme na
+\textbf{optimalizačné obdobie} (4 roky), na ktorom hľadáme portfólio, a nasledujúce \textbf{testovacie
+obdobie} (3 roky), ktoré algoritmus nikdy nevidí -- tak ako investor nepozná budúce ceny. Nastavenia
+metód a rozhodnutia o formulácii robíme na samostatnej ladiacej inštancii.
 
-\textbf{Ohodnotenie} kandidáta je Sharpeho pomer na optimalizačnom období (čím vyšší, tým lepšie):
-\[
-  \text{Sharpe}=\frac{\text{priemerný denný výnos}}{\text{smerodajná odchýlka denných výnosov}}\cdot\sqrt{252}.
-\]
-Denný výnos je percentuálna zmena hodnoty portfólia oproti predchádzajúcemu dňu, smerodajná odchýlka
-vyjadruje, ako veľmi hodnota kolíše, a $\sqrt{252}$ prepočíta výsledok na rok (252 obchodných dní).
-Bezrizikovú sadzbu neodpočítavame.
+\textbf{Vstupy.} 30 aktív: 15 ETF a 15 najväčších amerických firiem podľa veľkosti \emph{na začiatku}
+obdobia (nie dnes, inak by sme vyberali len firmy, o ktorých vieme, že uspeli); denné ceny z Yahoo Finance
+2010--2025; rozpočet 10\,000\,USD. Dividendy sú zahrnuté v cenách (ako keby sme ich hneď znova
+investovali). Transakčné poplatky nezapočítavame (mnohí brokeri obchodujú bez poplatkov, ročný poplatok ETF
+je už v jeho cene a pri jednorazovom nákupe je ich vplyv malý), dane neuvažujeme. Povoľujeme nákup častí akcií -- najmenší podiel
+5\,\% je 500\,USD, kým napr. akcia Amazonu stála začiatkom roka 2020 asi 1\,900\,USD.
 
-\textbf{Pravidlá (obmedzenia):}
+\textbf{Kandidát} je zoznam 30 podielov, jeden pre každé aktívum (0,30 = 30\,\% rozpočtu, 0 = aktívum nekúpime).
+Z hodnoty portfólia $V(t)$ v deň $t$ počítame denný výnos $r(t)=V(t)/V(t-1)-1$.
+\textbf{Ohodnotenie} je Sharpeho pomer na optimalizačnom období (maximalizujeme):
+\[
+  V(t)=10\,000\cdot\sum_{i}w_i\cdot\frac{\text{cena}_i(t)}{\text{cena}_i(\text{deň nákupu})},
+  \qquad
+  \text{Sharpe}=\frac{\text{priemer } r(t)}{\text{smerodajná odchýlka } r(t)}\cdot\sqrt{252}.
+\]
+Je to výnos na jednotku kolísania, prepočítaný na rok (252 obchodných dní); bezrizikovú sadzbu neodpočítavame.
+Čistý výnos nemaximalizujeme, lebo by viedol k najdivokejšiemu aktívu, ktoré v minulosti náhodou rástlo.
+Sharpe na minulosti je len odhadom toho, čo nás naozaj zaujíma (dobré portfólio do budúcnosti), preto
+každý výsledok overujeme na teste a uvádzame tam aj ročný výnos, kolísanie, najväčší prepad a konečnú sumu.
+
+\textbf{Obmedzenia.} Kandidát je prípustný, ak
 \begin{enumerate}[label=(O\arabic*)]
-\item súčet podielov je presne 100\,\%;
-\item žiadny podiel nie je záporný;
+\item súčet podielov je presne 100\,\% (nepožičiavame si ani nenechávame hotovosť);
+\item žiadny podiel nie je záporný (žiadny predaj nakrátko);
 \item vybraných (nenulových) aktív je 5 až 10;
 \item každé vybrané aktívum má podiel od 5\,\% do 30\,\%;
 \item aktívum bez cien počas optimalizačného obdobia má podiel 0.
 \end{enumerate}
-Podiel je teda buď 0, alebo ľubovoľné číslo od 5\,\% do 30\,\% -- úloha je kombinatorická vo výbere
-aktív a spojitá v podieloch. Poplatky nezapočítavame (zdôvodnenie v míľniku~1), dividendy sú v cenách
-zahrnuté (ako keby sme ich hneď znova investovali), dane neuvažujeme.
+Podiel je teda buď 0, alebo ľubovoľné číslo od 5\,\% do 30\,\%.
 
-\textbf{Prípustné riešenie vždy existuje.} Keď vyberieme 5 aktív, súčet ich podielov môže byť
-od $5\times5\,\%=25\,\%$ do $5\times30\,\%=150\,\%$; pri 10 aktívach od 50\,\% do 300\,\%.
-100\,\% je vždy v tomto rozsahu, takže \emph{akýkoľvek} výber 5 až 10 aktív sa dá doplniť
-podielmi na prípustné portfólio. Na tom stojí oprava v časti~\ref{sec:impl}.
+\textbf{Prípustné riešenie vždy existuje.} Pri $K$ vybraných aktívach môže byť súčet ich podielov od
+$K\cdot5\,\%$ do $K\cdot30\,\%$, pre $K=5$ teda 25--150\,\% a pre $K=10$ 50--300\,\%. 100\,\% leží v tomto
+rozsahu pre každé $K$ od 5 do 10, takže \emph{akýkoľvek} výber 5 až 10 aktív sa dá doplniť podielmi na
+prípustné portfólio. Na tom stojí oprava v časti~\ref{sec:impl}.
 
 \textbf{Diverzifikácia.} Rozloženie portfólia meriame \emph{efektívnym počtom aktív}
-$N_\text{eff}=1/(\text{súčet štvorcov podielov})$. Od výnosov nezávisí: 10 aktív po 10\,\% dá 10,
-jedno aktívum dá 1 a portfólio 50/30/20\,\% dá 2,6. Naše pravidlá zaručujú aspoň 3,64
-(najsústredenejšie prípustné portfólio je $3\times30\,\%+2\times5\,\%$).
+$N_\text{eff}=1/\sum_i w_i^2$. Od výnosov nezávisí: 10 aktív po 10\,\% dá 10, jedno aktívum 1,
+portfólio 50/30/20\,\% dá 2,6. Pravidlá O3 a O4 zaručujú $N_\text{eff}\ge3{,}64$ (portfólio $3\times30\,\%+2\times5\,\%$).
 
-\textbf{Zaradenie (oprava z M1).} Úloha je deterministická: rovnaký kandidát dostane na rovnakých
-historických dátach vždy rovnaké číslo, na optimalizačnom aj testovacom období. Náhodná je len
-skutočná budúcnosť, ktorú dáta iba odhadujú. Ostatné zaradenia z~M1 sa nemenia.
+\begin{table}[!ht]
+\centering\small
+\caption{Zaradenie úlohy podľa taxonómie.}
+\label{tab:tax}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{2.3cm}L@{}}
+\toprule
+Kritérium & Zaradenie & Zdôvodnenie \\
+\midrule
+numerická / kombinatorická & obidve & výber aktív je kombinatorický (asi 53 mil. výberov), podiely numerické \\
+spojitá / diskrétna & zmiešaná & výber je diskrétny, podiely spojité \\
+rozhodovací / optimalizačný & kombinovaný & riešenie musí splniť O1--O5 a zároveň mať čo najvyšší Sharpe \\
+s obmedzeniami & áno & náhodný kandidát O1--O5 takmer nikdy nesplní (časť~\ref{sec:impl}) \\
+jedno- / viackriteriálna & jednokriteriálna & výnos a riziko idú proti sebe, Sharpe ich spája do jedného čísla \\
+deterministická / stochastická & deterministická & na rovnakých historických dátach (optimalizačných aj testovacích) má kandidát vždy rovnaké hodnotenie \\
+statická / dynamická & statická & rozhodujeme raz, portfólio počas držby nemeníme \\
+prístup k hodnoteniu & white-box & vzorec poznáme; pri pevnom výbere je Sharpe hladký v podieloch (časť~\ref{sec:m3}) \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \section{Dáta a inštancie}
 
-Denné ceny (Yahoo Finance, 2010--2025, dividendy zahrnuté) sú uložené v \texttt{data/prices.csv}.
-Skontrolovali sme medzery a skoky: jediné denné zmeny nad 25\,\% sú skutočné pohyby akcie Meta,
-odčlenenia firiem (GE 2023, AT\&T 2022) sú v cenách zohľadnené. Každá inštancia má 15 rovnakých ETF
-(akcie USA, Európy, Japonska a rozvíjajúcich sa trhov, dlhopisy, zlato, nehnuteľnosti, 5 sektorov) a 15
-najväčších amerických firiem ku koncu roka pred optimalizačným obdobím (tabuľka~\ref{tab:inst}).
-Ladiaca inštancia používa len dáta do roku 2017, testovacie obdobia ostatných začínajú v roku 2018.
+Denné upravené ceny (Yahoo Finance, 2010--2025) stiahne skript \texttt{fetch\_data.py}; pre zopakovateľnosť
+sú uložené v \texttt{data/prices.csv}. Skontrolovali sme medzery a skoky: jediné denné
+zmeny nad 25\,\% sú skutočné pohyby akcie Meta, odčlenenia firiem (GE 2023, AT\&T 2022) sú v cenách
+zohľadnené. Každá inštancia má 15 rovnakých ETF (akcie USA, Európy, Japonska a rozvíjajúcich sa trhov,
+dlhopisy, zlato, nehnuteľnosti, 5 sektorov) a 15 najväčších amerických firiem ku koncu roka pred
+optimalizačným obdobím (tabuľka~\ref{tab:inst}). Ladiaca inštancia používa len dáta do roku 2017,
+testovacie obdobia ostatných začínajú v roku 2018, takže ladenie a vyhodnotenie sa neprekrývajú.
 
 \begin{table}[!ht]
 \centering\small
@@ -152,16 +135,13 @@ I3 & 2020--2023 & 2024--2025 & AAPL, MSFT, GOOGL, AMZN, META, BRK-B, JPM, V, JNJ
 \section{Implementácia modelu}
 \label{sec:impl}
 
-Kód je v Pythone (knižnice \texttt{numpy}, \texttt{pandas}, \texttt{scipy}), spúšťanie popisuje \texttt{README.md}.
-\begin{itemize}
-\item \texttt{instance.py} -- načíta inštanciu: zoznam aktív, tabuľky cien (riadky = dni, stĺpce = aktíva)
-  pre obe obdobia, dostupnosť aktív (O5) a hodnoty pravidiel.
-\item \texttt{model.py} -- funkcia \texttt{check} vráti zoznam porušených pravidiel
-  (napr. \texttt{O3 počet aktív 2 mimo [5, 10]}); funkcia \texttt{evaluate} spočíta Sharpe, ročný výnos,
-  kolísanie, najväčší prepad, konečnú sumu a efektívny počet aktív. Rýchla verzia na optimalizáciu
-  počíta aj počet ohodnotení; jedno ohodnotenie trvá desiatky mikrosekúnd.
-\item \texttt{repair.py} -- oprava, dekóder skóre a penalizácia; \texttt{baselines.py} -- baseline.
-\end{itemize}
+Kód je v Pythone (\texttt{numpy}, \texttt{pandas}, \texttt{scipy}), spúšťanie popisuje \texttt{README.md}.
+\texttt{instance.py} načíta inštanciu (aktíva, tabuľky cien pre obe obdobia, dostupnosť aktív, pravidlá).
+V \texttt{model.py} funkcia \texttt{check} vráti zoznam porušených pravidiel
+(napr. \texttt{O3 počet aktív 2 mimo [5, 10]}) a \texttt{evaluate} spočíta Sharpe, ročný výnos,
+kolísanie, najväčší prepad, konečnú sumu a $N_\text{eff}$; rýchla verzia na optimalizáciu počíta aj
+počet ohodnotení (jedno trvá desiatky mikrosekúnd). \texttt{repair.py} obsahuje opravu, dekóder
+skóre a penalizáciu, \texttt{baselines.py} baseline.
 
 \textbf{Oprava} zmení ľubovoľný zoznam 30 čísel na prípustné portfólio v troch krokoch:
 \begin{enumerate}
@@ -169,30 +149,25 @@ Kód je v Pythone (knižnice \texttt{numpy}, \texttt{pandas}, \texttt{scipy}), s
 \item ak je vybraných viac ako 10 aktív, ponechá 10 s najväčším podielom; ak menej ako 5,
   doplní ďalšie -- podľa skóre, ak ho máme, inak náhodne (O3);
 \item podiely vybraných aktív upraví tak, aby dali spolu 100\,\% a každý bol od 5\,\% do 30\,\% (O1, O4):
-  všetky podiely posunie o rovnakú hodnotu a tie, ktoré vyjdú mimo 5--30\,\%, oreže na hranicu.
+  všetky posunie o rovnakú hodnotu a tie, ktoré vyjdú mimo 5--30\,\%, oreže na hranicu.
   Posun vypočítame presne, takže výsledok je zo všetkých prípustných portfólií \emph{najbližší}
   pôvodnému zoznamu.
 \end{enumerate}
-Vďaka časti~\ref{sec:form} krok~3 vždy vyjde, takže výsledok je vždy prípustný; už prípustné portfólio
+Krok~3 vďaka časti~\ref{sec:form} vždy vyjde, takže výsledok je vždy prípustný; už prípustné portfólio
 oprava nezmení. Príklad: 25/25/25/20/3/2\,\% $\to$ 23,8/23,8/23,8/18,8/5/5\,\% -- dva malé podiely zvýši
 na 5\,\% a chýbajúce percentá rovnomerne uberie ostatným.
 
-\textbf{Dekóder skóre} (reprezentácia cez skóre z M1): algoritmus pracuje s 30 číslami od 0 do 1.
+\textbf{Dekóder skóre} umožní použiť algoritmy pre reálne čísla: kandidát v algoritme je 30 čísel od 0 do 1.
 Vybrané sú aktíva so skóre nad 0,5, ich počet sa upraví na 5--10 podľa skóre a podiely vzniknú opravou.
 Pri náhodných skóre je nad 0,5 v priemere 15 aktív, takže dekóder v 98\,\% prípadov vyberie 10 aktív;
-menší počet musí nájsť samotný algoritmus (lokálne prehľadávanie sa dostane aj na 5).
+menší počet musí nájsť samotný algoritmus.
 
-\textbf{Penalizácia} je alternatíva k oprave. Kandidáta len prepočíta na súčet 100\,\% (O1 a O2
-teda platia vždy) a od jeho Sharpeho pomeru odpočíta trest $\lambda\times$ miera porušenia, kde $\lambda$
-je sila trestu. Vyskúšali sme dve miery porušenia:
-\begin{itemize}
-\item \emph{pravidlá}: každé chýbajúce alebo prebytočné aktívum a každých 5 percentuálnych bodov mimo
-  rozsahu 5--30\,\% je jedna jednotka porušenia (O3, O4);
-\item \emph{diverzifikácia} (návrh z konzultácie): o koľko je efektívny počet aktív menší ako 5,
-  plus prekročenie maximálneho podielu 30\,\%.
-\end{itemize}
-Algoritmus si pamätá najlepšieho \emph{prípustného} kandidáta, ktorého ohodnotil, a ten vráti;
-ak žiadneho nenašiel, najlepšieho opraví. Na konci má teda vždy platného kandidáta.
+\textbf{Penalizácia} je alternatíva k oprave. Kandidáta len prepočíta na súčet 100\,\% (O1, O2 platia vždy)
+a od Sharpeho pomeru odpočíta $\lambda\times$ miera porušenia, kde $\lambda$ je sila trestu. Miery porušenia sú dve:
+\emph{pravidlá} -- každé chýbajúce alebo prebytočné aktívum, každé vybrané nedostupné aktívum a každých
+5 percentuálnych bodov mimo rozsahu 5--30\,\% je jedna jednotka; \emph{diverzifikácia} -- o koľko je
+$N_\text{eff}$ menší ako 5, plus prekročenie podielu 30\,\%. Algoritmus si pamätá najlepšieho
+\emph{prípustného} kandidáta, ktorého ohodnotil, a ten vráti; ak žiadneho nenašiel, najlepšieho opraví.
 
 \section{Overenie modelu}
 
@@ -202,13 +177,13 @@ má hodnoty 1\,000, 1\,050 a 1\,095\,USD a model vráti presne tieto hodnoty aj 
 Ďalej testujeme najväčší prepad, zhodu rýchlej a úplnej verzie hodnotenia, odhalenie porušenia
 každého pravidla a to, že oprava, dekóder aj generátor náhodných portfólií dajú na 2\,000
 náhodných vstupoch vždy prípustný výsledok. Príklady na skutočných dátach sú v tabuľke~\ref{tab:examples}:
-kandidáti B a C majú vysoký Sharpe, ale kontrola ich správne odmietne; D porušuje len O4
-a oprava ho posunie na prípustné portfólio s takmer rovnakým hodnotením.
+B a C majú vysoký Sharpe, ale kontrola ich správne odmietne; D porušuje len O4 a oprava z neho
+spraví najbližšie prípustné portfólio (príklad vyššie); E je referencia 1/N.
 
 \begin{table}[!ht]
 \centering\small
 \caption{Ohodnotenie vybraných kandidátov na inštancii I1 (\texttt{scripts/examples.py}).
-Suma = hodnota z 10\,000\,USD na konci testu, $N_\text{eff}$ = efektívny počet aktív.}
+Suma = hodnota z 10\,000\,USD na konci testu.}
 \label{tab:examples}
 \setlength{\tabcolsep}{4pt}
 \begin{tabularx}{\textwidth}{@{}lLlrrrr@{}}
@@ -224,16 +199,15 @@ E & 30 aktív po 3,33\,\% & O3, O4 & 0,99 & 0,59 & 13\,171 & 30,00 \\
 \end{tabularx}
 \end{table}
 
-\section{Diverzifikácia: pevné pravidlá alebo penalizácia?}
+\section{Diverzifikácia a práca s obmedzeniami}
 \label{sec:div}
 
 \textbf{E1 -- čo sa stane bez pravidiel O3, O4.} Hľadali sme najlepší Sharpe bez obmedzenia počtu
-aktív a veľkosti podielu (gradientová metóda SLSQP zo \texttt{scipy}, 20 štartov). Výsledok nie je
-100\,\% v najlepšom aktíve -- zmes aktív má vždy vyšší Sharpe než najlepšie samostatné aktívum
-(napr. 2,05 oproti 1,23 v I1). Portfólio je však veľmi sústredené: efektívne len 1,4 až 3,3 aktíva
-a najväčší podiel 48--83\,\% (napr. 83\,\% v dlhopisovom ETF v I1). Metóda zaručuje len lokálne
-optimum, preto tieto hodnoty berieme ako orientačný horný odhad pre úlohu s pravidlami
-(pravidlá možnosti len zužujú); žiadna z metód ho neprekročila.
+aktív a veľkosti podielu (SLSQP zo \texttt{scipy}, 20 štartov; tabuľka~\ref{tab:e1}). Výsledok nie je
+100\,\% v najlepšom aktíve -- zmes má vždy vyšší Sharpe než najlepšie samostatné aktívum
+(napr. 2,05 oproti 1,23 v I1). Portfólio je však veľmi sústredené: 4--9 nenulových aktív, efektívne len
+1,4 až 3,3, a najväčší podiel 48--83\,\%. Pravidlá O3 a O4 preto ponechávame. E1 slúži aj ako orientačný
+horný odhad pre úlohu s pravidlami (SLSQP nájde len lokálne optimum); žiadna metóda ho neprekročila.
 
 \begin{table}[!ht]
 \centering\small
@@ -252,58 +226,54 @@ I3 & AAPL (0,89) & 0,95 & 4 & 3,02 & 48\,\% & GLD 48, AAPL 22, MSFT 20, XOM 10\,
 \end{tabular}
 \end{table}
 
-\textbf{E2 -- oprava alebo penalizácia.} Na ladiacej inštancii sme spustili ten istý jednoduchý
-algoritmus (lokálne prehľadávanie, ktoré mení skóre a prijme zmenu, ak sa nezhorší; 5\,000 ohodnotení,
-20 behov) s rôznymi spôsobmi práce s pravidlami (tabuľka~\ref{tab:e2}).
+\textbf{E2 -- oprava alebo penalizácia.} Na ladiacej inštancii sme spustili ten istý algoritmus
+(lokálne prehľadávanie, 5\,000 ohodnotení, 20 behov) s rôznou prácou s pravidlami (tabuľka~\ref{tab:e2}).
 \begin{itemize}
-\item \textbf{Pevné pravidlá s opravou} dali vo všetkých behoch prípustný výsledok, ani jedno ohodnotenie
-  sa neminulo na neprípustného kandidáta a dosiahli najvyšší Sharpe (2,34, o 1\,\% menej ako odhad z~E1)
-  s~veľmi malým rozptylom. Prísnejší strop 20\,\% vynúti rozloženejšie portfóliá (efektívne 5,8 aktíva)
-  za cenu 1\,\% Sharpe.
-\item \textbf{Penalizácia pravidiel}: pri slabom treste ($\lambda=0{,}01$) sa porušenie oplatí a 10\,\% behov
-  skončilo neprípustne. Pri silnejšom treste sú výsledky prípustné, ale 6--8\,\% ohodnotení padne
-  na neprípustných kandidátov a rozptyl je asi 20-krát väčší. Pre $\lambda=0{,}1$ a $\lambda=1$ vyšlo
-  takmer to isté, lebo už pri $0{,}1$ je trest väčší než zisk z porušenia.
-\item \textbf{Penalizácia diverzifikácie} dala rozloženejšie portfóliá (efektívne 5,0--5,6 aktíva) s~mierne
-  nižším Sharpe na optimalizačnom období. Podobný, o niečo silnejší efekt na teste (1,01) dosiahol
-  aj strop 20\,\%, a to bez neprípustných ohodnotení. Rozdiely na jednom testovacom období sú
-  menšie ako rozptyl náhodných portfólií, preto z~nich nerobíme silný záver.
-\item Riadok \textbf{„bez O3/O4“}: algoritmus pravidlá O3, O4 nepozná a jeho vlastný výsledok bol
-  neprípustný vo všetkých behoch (v priemere 3,9 aktíva, $N_\text{eff}=3{,}66$). Odovzdávame preto
-  najlepšieho prípustného kandidáta, na ktorého počas behu narazil (záverečná oprava nebola potrebná
-  v žiadnom behu); $N_\text{eff}$ v tabuľke patrí jemu.
+\item \textbf{Oprava}: vždy prípustný výsledok, žiadne ohodnotenie minuté na neprípustného kandidáta, najvyšší
+  Sharpe (2,34, o 1\,\% menej ako E1) a veľmi malý rozptyl. Strop 20\,\% dá rozloženejšie portfóliá
+  ($N_\text{eff}$ 5,8) za cenu 1\,\% Sharpe.
+\item \textbf{Penalizácia pravidiel}: pri $\lambda=0{,}01$ sa porušenie oplatí (10\,\% behov neprípustných);
+  pri $\lambda\ge0{,}1$ je výsledok prípustný, ale 6--8\,\% ohodnotení padne na neprípustných kandidátov
+  a rozptyl je asi 20-krát väčší.
+\item \textbf{Penalizácia diverzifikácie}: rozloženejšie portfóliá ($N_\text{eff}$ 5,0--5,6), mierne nižší Sharpe;
+  podobný efekt bez neprípustných ohodnotení má strop 20\,\%.
+\item \textbf{Bez O3/O4}: výsledok algoritmu bol vždy neprípustný (priemerne 3,9 aktíva); v tabuľke je
+  najlepší prípustný kandidát, na ktorého počas behu narazil.
 \end{itemize}
 
 \begin{table}[!ht]
 \centering\small
-\caption{E2 (ladiaca inštancia, 20 behov po 5\,000 ohodnotení). Prípustné = podiel behov, ktorých
-výsledok spĺňa všetky pravidlá; nepríp. ohodn. = podiel ohodnotení minutých na neprípustných
-kandidátov; $N_\text{eff}$ = efektívny počet aktív; $\lambda$ = sila trestu. Sharpe je uvedený ako
-priemer $\pm$ smerodajná odchýlka cez behy, pre odovzdané (vždy prípustné) portfólio.}
+\caption{E2 (ladiaca inštancia, 20 behov po 5\,000 ohodnotení). Prípustné = podiel behov s prípustným
+výsledkom; nepríp. ohodn. = podiel ohodnotení minutých na neprípustných kandidátov; $\lambda$ = sila trestu.
+Sharpe je priemer $\pm$ smerodajná odchýlka cez behy, pre odovzdané (vždy prípustné) portfólio.}
 \label{tab:e2}
 \input{tables/e2.tex}
 \end{table}
 
-\textbf{Rozhodnutie:} ponechávame \textbf{pevné pravidlá s opravou}, ako sme sa dohodli na konzultácii.
-Výsledok je vždy prípustný, netreba hľadať silu trestu a celý rozpočet ohodnotení ide na prípustných
-kandidátov. Mieru diverzifikácie riadime pravidlami (najmenší počet aktív, najväčší podiel);
-v M3 porovnáme strop 30\,\% aj 20\,\%.
+\textbf{Rozhodnutie:} používame \textbf{pevné pravidlá s opravou}. Výsledok je vždy prípustný, netreba
+hľadať silu trestu a celý rozpočet ohodnotení ide na prípustných kandidátov. Mieru diverzifikácie riadime
+pravidlami (najmenší počet aktív, najväčší podiel); v M3 porovnáme strop 30\,\% aj 20\,\%.
 
 \section{Baseline}
 \label{sec:base}
 
+Všetky baseline vracajú prípustné portfólio bez penalizácie; jedinou výnimkou je referencia 1/N.
 \begin{itemize}
 \item \textbf{Náhodné prípustné portfóliá -- priemer} (hlavný baseline): náhodne zvolíme počet aktív
   (5--10), náhodne vyberieme aktíva a náhodne im rozdelíme podiely tak, aby každý mal aspoň 5\,\%
   a spolu dali 100\,\% (všetky takéto rozdelenia sú rovnako pravdepodobné). Ak niektorý podiel presiahne
-  30\,\%, losujeme znova. Každý kandidát je teda prípustný bez opravy. Uvádzame priemer a odchýlku
-  cez 10\,000 portfólií.
-\item \textbf{10 náhodných aktív po 10\,\%} (baseline z M1), tiež priemer cez 10\,000.
-\item \textbf{Greedy top-10}: 10 aktív s najvyšším vlastným Sharpe, po 10\,\% -- čo dá „investovať do
-  najlepších aktív“ bez ohľadu na to, ako sa navzájom dopĺňajú.
-\item \textbf{Náhodné a lokálne prehľadávanie} s dekóderom skóre, 5\,000 ohodnotení, 20 behov --
-  porovnávacie body pre metódy z M3 pri rovnakom počte ohodnotení.
-\item \textbf{1/N} -- rovnako do všetkých 30 aktív. Porušuje O3, uvádzame ho len ako známu referenciu \cite{demiguel2009}.
+  30\,\%, losujeme znova, takže neprípustný kandidát nikdy nevznikne. Uvádzame priemer a odchýlku cez
+  10\,000 portfólií. Predstavuje investora, ktorý dodrží pravidlá, ale vyberá bez optimalizácie; priemer na
+  rozdiel od najlepšieho z mnohých pokusov nezávisí od šťastia ani od počtu pokusov.
+\item \textbf{10 náhodných aktív po 10\,\%}, tiež priemer cez 10\,000 -- najjednoduchšie rovnomerné
+  rozdelenie, ktoré spĺňa pravidlá (10 aktív, podiel 10\,\% je v rozsahu), preto opravu nepotrebuje.
+\item \textbf{Greedy top-10}: 10 aktív s najvyšším vlastným Sharpe, po 10\,\% (tiež vždy prípustné) --
+  „investovať do najlepších aktív“ bez ohľadu na to, ako sa navzájom dopĺňajú.
+\item \textbf{Náhodné a lokálne prehľadávanie} (5\,000 ohodnotení, 20 behov): dekóder urobí z každého
+  vektora skóre prípustné portfólio; náhodné vráti najlepšie z 5\,000 náhodných, lokálne mení skóre a zmenu
+  prijme, ak sa nezhorší. Sú to porovnávacie body pre metódy z M3 pri rovnakom počte ohodnotení.
+\item \textbf{1/N} -- rovnako do všetkých 30 aktív. Porušuje O3, preto ho neporovnávame s metódami,
+  uvádzame ho len ako známu referenciu výnosu a rizika \cite{demiguel2009}.
 \end{itemize}
 
 \begin{table}[!ht]
@@ -316,14 +286,12 @@ Pri priemeroch je uvedená smerodajná odchýlka cez portfóliá/behy.}
 \input{tables/baselines.tex}
 \end{table}
 
-\textbf{Čo baseline ukazuje.}
+\textbf{Čo baseline ukazuje.} Všetky náhodné portfóliá aj výsledky prehľadávaní prešli kontrolou.
 \begin{itemize}
-\item \textbf{Model aj baseline fungujú}: všetky náhodné portfóliá aj výsledky prehľadávaní prešli kontrolou.
 \item \textbf{Optimalizácia na optimalizačnom období funguje}: lokálne prehľadávanie má 1,7- až 2,5-krát
   vyšší Sharpe ako priemerné náhodné portfólio a je 1--5\,\% od odhadu z E1. Prvých 150--300
-  ohodnotení je lepšie náhodné prehľadávanie, lokálne ho však prekoná po 400--550 ohodnoteniach
-  a na 1\,\% od svojej konečnej hodnoty je po 2\,000--3\,000 (obr.~\ref{fig:conv}). Pri 30 aktívach je úloha
-  pomerne ľahká, rozdiely medzi metódami budú viditeľnejšie na väčšej úlohe.
+  ohodnotení je lepšie náhodné prehľadávanie, lokálne ho prekoná po 400--550 ohodnoteniach
+  a na 1\,\% od svojej konečnej hodnoty je po 2\,000--3\,000 (obr.~\ref{fig:conv}).
 \item \textbf{Dobrý Sharpe v minulosti nezaručuje dobrý Sharpe v budúcnosti} (obr.~\ref{fig:random}).
   V I1 spolu silno súvisia (korelácia 0,77), v I2 dokonca opačne ($-0{,}41$). V I1 a I3 je optimalizácia
   na teste lepšia ako 1/N aj priemer náhodných, v ladiacej je na úrovni 1/N a v I2 horšia (strata 3,4\,\%):
@@ -331,12 +299,12 @@ Pri priemeroch je uvedená smerodajná odchýlka cez portfóliá/behy.}
   \cite{michaud1989}. Je to vlastnosť hodnotenia na minulosti, nie chyba algoritmu, preto budeme
   oddelene hodnotiť, ako dobre metóda optimalizuje a ako dopadne na teste.
 \item \textbf{Vyšší Sharpe neznamená vyšší zisk}: v ladiacej inštancii má lokálne prehľadávanie
-  na teste Sharpe ako 1/N, ale ročný výnos len 5,6\,\% oproti 9,4\,\%. Uvádzame preto aj výnos a sumu.
+  na teste Sharpe ako 1/N, ale ročný výnos len 5,6\,\% oproti 9,4\,\%.
 \end{itemize}
 
 \begin{figure}[!ht]
 \centering
-\includegraphics[width=0.8\textwidth]{figures/random_train_test.png}
+\includegraphics[width=0.66\textwidth]{figures/random_train_test.png}
 \caption{Sharpe 10\,000 náhodných prípustných portfólií na optimalizačnom (vodorovne) a testovacom
 (zvisle) období a poloha referenčných metód; $\rho$ je korelácia medzi obdobiami.}
 \label{fig:random}
@@ -344,49 +312,45 @@ Pri priemeroch je uvedená smerodajná odchýlka cez portfóliá/behy.}
 
 \begin{figure}[!ht]
 \centering
-\includegraphics[width=0.8\textwidth]{figures/convergence.png}
+\includegraphics[width=0.66\textwidth]{figures/convergence.png}
 \caption{Najlepší Sharpe na optimalizačnom období podľa počtu ohodnotení (priemer cez 20 behov,
 pásmo = najhorší až najlepší beh).}
 \label{fig:conv}
 \end{figure}
 
 \section{Navrhované metódy pre míľnik 3}
+\label{sec:m3}
 
 Čo sme sa naučili pri implementácii: ohodnotenie je lacné (desiatky mikrosekúnd), takže si môžeme
 dovoliť desaťtisíce ohodnotení a 20--30 behov; pravidlá vieme vždy splniť lacnou opravou;
-reprezentácia cez skóre má plošiny (veľa rôznych skóre dá to isté portfólio). Úloha má dve časti:
-výber aktív (kombinatorický) a ich podiely (spojité). Keď je výber pevný, Sharpe sa mení plynulo
-podľa podielov.
+reprezentácia cez skóre má plošiny (veľa skóre dá to isté portfólio). Úloha má kombinatorickú časť
+(výber aktív) a spojitú (podiely); pri pevnom výbere sa Sharpe mení plynulo. Pri 30 aktívach je úloha
+pomerne ľahká, rozdiely medzi metódami budú viditeľnejšie na väčšej úlohe.
 
 \textbf{1. Genetický algoritmus s priamou reprezentáciou a opravou} \cite{chang2000}. Jedinec je
-priamo zoznam podielov. Úpravy pre našu úlohu: kríženie zoberie aktíva oboch rodičov a podiely
-spriemeruje; mutácie \emph{vymenia} aktívum, \emph{presunú} časť podielu alebo aktívum \emph{pridajú či odoberú};
-po každej operácii nasleduje oprava. Výber rodičov turnajom, najlepší jedinci prežívajú (elitizmus),
-koniec po pevnom počte ohodnotení. Prečo: kríženie vie spojiť dobré časti rôznych portfólií
-(napr. dlhopisovú a akciovú zložku), čo lokálne prehľadávanie nevie. Oprava je lacná, takže každý
-potomok je prípustný. Veľkosť populácie a pravdepodobnosti operátorov naladíme na ladiacej inštancii.
+priamo zoznam podielov. Kríženie zoberie aktíva oboch rodičov a podiely spriemeruje; mutácie
+\emph{vymenia} aktívum, \emph{presunú} časť podielu alebo aktívum \emph{pridajú či odoberú}; po každej
+operácii nasleduje oprava. Výber turnajom, elitizmus, koniec po pevnom počte ohodnotení. Prečo: kríženie
+vie spojiť dobré časti rôznych portfólií (napr. dlhopisovú a akciovú zložku), čo lokálne prehľadávanie
+nevie, a lacná oprava zaručí prípustnosť každého potomka. Parametre naladíme na ladiacej inštancii.
 
 \textbf{2. Hybrid: simulované žíhanie pre výber aktív + presný výpočet podielov.}
 Simulované žíhanie prehľadáva len množiny 5--10 aktív (vymení, pridá alebo odoberie aktívum).
 Pre každú množinu nájde najlepšie podiely gradientová metóda (SLSQP zo \texttt{scipy}) s podmienkou
 súčtu 100\,\% a rozsahom 5--30\,\%. Využívame, že vzorec hodnotenia poznáme (\emph{white-box}): pre pevný
-výber je úloha plynulá a má najviac 10 premenných. Pre férovosť započítame všetky ohodnotenia
-vrátane tých vo vnútri gradientovej metódy a porovnáme aj čas behu. Vnútorný krok je drahý,
-preto obmedzíme jeho počet iterácií a vyskúšame aj verziu, ktorá podiely ladí len pre najlepšie množiny.
+výber je úloha plynulá a má najviac 10 premenných. Vnútorný krok je drahý: započítame všetky jeho
+ohodnotenia aj čas, obmedzíme počet iterácií a vyskúšame aj ladenie podielov len pre najlepšie množiny.
 
-\textbf{Záloha:} diferenciálna evolúcia v reprezentácii cez skóre (bez úprav operátorov; náhodná
-štartovacia populácia má však takmer len portfóliá s~10 aktívami).
-
-\textbf{Plán M3:} všetky metódy spustíme na I1--I3 s rovnakým rozpočtom (5\,000 a 20\,000 ohodnotení)
+\textbf{Záloha:} diferenciálna evolúcia v reprezentácii cez skóre (náhodná štartovacia populácia má
+však takmer len portfóliá s~10 aktívami). \textbf{Plán M3:} všetky metódy spustíme na I1--I3 s rovnakým rozpočtom (5\,000 a 20\,000 ohodnotení)
 a 20--30 behmi; porovnáme Sharpe na optimalizačnom období, výsledky na teste voči baseline,
 čas a rozptyl (Wilcoxonov test). Potom úlohu zväčšíme (napr. 60 aktív, 5--20 vybraných).
 
 \textbf{Obmedzenia záverov:} len tri hodnotiace inštancie, ktoré sa čiastočne prekrývajú, a výsledky na
 teste silno závisia od diania na trhu (napr. rok 2022 pre dlhopisy); poradie firiem okolo 15. miesta
 môže byť sporné; Sharpe bez bezrizikovej sadzby mierne zvýhodňuje dlhopisy; bez poplatkov a daní.
-Výsledky sú zopakovateľné pri verziách knižníc z~\texttt{requirements-lock.txt}.
 
-{\small
+{\footnotesize
 \begin{thebibliography}{9}\setlength{\itemsep}{0pt}
 \bibitem{chang2000} T.-J. Chang, N. Meade, J.\,E. Beasley, Y.\,M. Sharaiha. Heuristics for cardinality
   constrained portfolio optimisation. \emph{Computers \& Operations Research} 27 (2000), 1271--1302.
