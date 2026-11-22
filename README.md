@@ -46,13 +46,13 @@ Príklady ohodnotenia, kontroly a opravy kandidátov na inštancii I1 (výstup a
 python scripts/examples.py
 ```
 
-Baseline a referenčné prehľadávania na všetkých inštanciách (asi 2–8 min podľa počítača; `results/baselines.csv`, tabuľka `report/tables/baselines.tex`, grafy v `report/figures/`):
+Baseline a referenčné prehľadávania na všetkých inštanciách (`results/baselines.csv`, tabuľka `report/tables/baselines.tex`, grafy v `report/figures/`):
 
 ```bash
 python scripts/run_baselines.py
 ```
 
-Experimenty k diverzifikácii a práci s obmedzeniami (E1, E2; asi 2–8 min podľa počítača; `results/e1_*.csv`, `results/e2_*.csv`, tabuľka `report/tables/e2.tex`):
+Experimenty k diverzifikácii a práci s obmedzeniami (E1, E2; `results/e1_*.csv`, `results/e2_*.csv`, tabuľka `report/tables/e2.tex`):
 
 ```bash
 python scripts/experiment_constraints.py
@@ -86,11 +86,5 @@ src/portfolio/
 scripts/         spúšťacie skripty (dáta, príklady, baseline, experimenty)
 tests/           unit testy modelu
 results/         výstupy experimentov (CSV, príklady v examples.txt)
-report/          správa k míľniku 2 (main.tex, figures/)
+report/          správa k míľniku 2 (main.pdf)
 ```
-
-## Správa
-
-`report/main.tex` (LaTeX, rovnaký štýl ako míľnik 1). Tabuľky sa vkladajú z
-`report/tables/baselines.tex` (generuje `run_baselines.py`) a `report/tables/e2.tex`
-(generuje `experiment_constraints.py`). Kompiluje sa cez XeLaTeX alebo LuaLaTeX (nie pdfLaTeX).
