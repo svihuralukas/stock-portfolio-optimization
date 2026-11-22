@@ -1,5 +1,4 @@
 \documentclass[10pt,a4paper]{article}
-\usepackage{mathpazo}
 \usepackage[no-math]{fontspec}
 \usepackage{babel}
 \babelprovide[import,main,hyphenrules=czech]{slovak}
@@ -269,8 +268,10 @@ algoritmus (lokálne prehľadávanie, ktoré mení skóre a prijme zmenu, ak sa 
   nižším Sharpe na optimalizačnom období. Podobný, o niečo silnejší efekt na teste (1,01) dosiahol
   aj strop 20\,\%, a to bez neprípustných ohodnotení. Rozdiely na jednom testovacom období sú
   menšie ako rozptyl náhodných portfólií, preto z~nich nerobíme silný záver.
-\item Riadok \textbf{„bez O3/O4“} ukazuje portfólio až po záverečnej oprave, preto je rozloženejšie
-  ako pri pevných pravidlách.
+\item Riadok \textbf{„bez O3/O4“}: algoritmus pravidlá O3, O4 nepozná a jeho vlastný výsledok bol
+  neprípustný vo všetkých behoch (v priemere 3,9 aktíva, $N_\text{eff}=3{,}66$). Odovzdávame preto
+  najlepšieho prípustného kandidáta, na ktorého počas behu narazil (záverečná oprava nebola potrebná
+  v žiadnom behu); $N_\text{eff}$ v tabuľke patrí jemu.
 \end{itemize}
 
 \begin{table}[!ht]
@@ -333,20 +334,20 @@ Pri priemeroch je uvedená smerodajná odchýlka cez portfóliá/behy.}
   na teste Sharpe ako 1/N, ale ročný výnos len 5,6\,\% oproti 9,4\,\%. Uvádzame preto aj výnos a sumu.
 \end{itemize}
 
-\begin{figure}[t]
+\begin{figure}[!ht]
 \centering
-\begin{minipage}[b]{0.49\textwidth}\centering
-\includegraphics[width=\linewidth]{figures/random_train_test.png}
+\includegraphics[width=0.8\textwidth]{figures/random_train_test.png}
 \caption{Sharpe 10\,000 náhodných prípustných portfólií na optimalizačnom (vodorovne) a testovacom
 (zvisle) období a poloha referenčných metód; $\rho$ je korelácia medzi obdobiami.}
 \label{fig:random}
-\end{minipage}\hfill
-\begin{minipage}[b]{0.49\textwidth}\centering
-\includegraphics[width=\linewidth]{figures/convergence.png}
+\end{figure}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/convergence.png}
 \caption{Najlepší Sharpe na optimalizačnom období podľa počtu ohodnotení (priemer cez 20 behov,
 pásmo = najhorší až najlepší beh).}
 \label{fig:conv}
-\end{minipage}
 \end{figure}
 
 \section{Navrhované metódy pre míľnik 3}
