@@ -6,7 +6,7 @@
   * greedy: 10 aktív s najvyšším vlastným Sharpe, po 10 %,
   * náhodné prehľadávanie (najlepší z 5 000) a (1+1) lokálne prehľadávanie, 20 behov.
 
-    python scripts/run_baselines.py          # ~1,5 min; tabuľky do results/ a report/tables/, grafy do report/figures/
+    python scripts/run_baselines.py          # tabuľky do results/ a report/tables/, grafy do report/figures/
 """
 import sys
 import time
@@ -127,18 +127,19 @@ def write_latex(df):
     def num(x, d=2):
         return f"{x:.{d}f}".replace("-", "$-$").replace(".", "{,}")
 
-    lines = [r"\begin{tabular}{@{}lrrrrrr@{}}", r"\toprule",
-             r"Metóda & Sharpe opt. & Sharpe test & Výnos & Kolísanie & Prepad & Suma \\"]
+    lines = [r"\begin{tabular}{@{}lrrrrrrr@{}}", r"\toprule",
+             r"Metóda & Sharpe opt. & Sharpe test & $N_\text{eff}$ & Výnos & Kolísanie & Prepad & Suma \\"]
     for name in df["inštancia"].unique():
         part = df[df["inštancia"] == name].set_index("metóda").loc[order]
         lines.append(r"\midrule")
-        lines.append(rf"\multicolumn{{7}}{{@{{}}l}}{{\textbf{{{name}}}}}\\")
+        lines.append(rf"\multicolumn{{8}}{{@{{}}l}}{{\textbf{{{name}}}}}\\")
         for m, r in part.iterrows():
             sd = f"\\,$\\pm$\\,{num(r.test_sharpe_sd)}" if r["počet"] > 1 else ""
             label = m.replace(" %", r"\,\%").replace(f"{BUDGET}", f"{BUDGET // 1000}\\,000")
             final = f"{r.test_final_value:,.0f}".replace(",", r"\,")
             lines.append(
-                f"{label} & {num(r.train_sharpe)} & {num(r.test_sharpe)}{sd} & {num(r.test_ann_return * 100, 1)} & "
+                f"{label} & {num(r.train_sharpe)} & {num(r.test_sharpe)}{sd} & {num(r.train_n_eff)} & "
+                f"{num(r.test_ann_return * 100, 1)} & "
                 f"{num(r.test_ann_vol * 100, 1)} & {num(r.test_max_drawdown * 100, 1)} & {final}" + r"\\")
     lines += [r"\bottomrule", r"\end{tabular}"]
     (ROOT / "report" / "tables").mkdir(parents=True, exist_ok=True)

@@ -7,7 +7,7 @@ E2: Striktné obmedzenia (oprava/dekóder) vs. penalizácia pravidiel vs. penali
     rovnaký rozpočet ohodnotení, 20 behov; len na ladiacej inštancii (rozhodnutie
     o formulácii nesmie vidieť dáta inštancií zo záverečného porovnania).
 
-    python scripts/experiment_constraints.py          # ~1 min
+    python scripts/experiment_constraints.py
 
 V tabuľke pre správu sú N_eff aj Sharpe pre odovzdané (vždy prípustné) portfólio;
 surové výsledky sú v results/e2_constraint_handling*.csv.

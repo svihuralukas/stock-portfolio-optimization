@@ -140,7 +140,7 @@ Kód je v Pythone (\texttt{numpy}, \texttt{pandas}, \texttt{scipy}), spúšťani
 V \texttt{model.py} funkcia \texttt{check} vráti zoznam porušených pravidiel
 (napr. \texttt{O3 počet aktív 2 mimo [5, 10]}) a \texttt{evaluate} spočíta Sharpe, ročný výnos,
 kolísanie, najväčší prepad, konečnú sumu a $N_\text{eff}$; rýchla verzia na optimalizáciu počíta aj
-počet ohodnotení (jedno trvá desiatky mikrosekúnd). \texttt{repair.py} obsahuje opravu, dekóder
+počet ohodnotení (jedno trvá asi desatinu milisekundy). \texttt{repair.py} obsahuje opravu, dekóder
 skóre a penalizáciu, \texttt{baselines.py} baseline.
 
 \textbf{Oprava} zmení ľubovoľný zoznam 30 čísel na prípustné portfólio v troch krokoch:
@@ -278,8 +278,8 @@ Všetky baseline vracajú prípustné portfólio bez penalizácie; jedinou výni
 
 \begin{table}[!ht]
 \centering\footnotesize
-\caption{Baseline a referencie. Sharpe na optimalizačnom (opt.) a testovacom období; ostatné
-stĺpce na teste: ročný výnos, kolísanie, najväčší prepad (\%) a konečná suma z 10\,000\,USD.
+\caption{Baseline a referencie. Sharpe na optimalizačnom (opt.) a testovacom období, efektívny počet
+aktív $N_\text{eff}$; ostatné stĺpce na teste: ročný výnos, kolísanie, najväčší prepad (\%) a konečná suma z 10\,000\,USD.
 Pri priemeroch je uvedená smerodajná odchýlka cez portfóliá/behy.}
 \label{tab:base}
 \setlength{\tabcolsep}{4pt}
@@ -290,8 +290,10 @@ Pri priemeroch je uvedená smerodajná odchýlka cez portfóliá/behy.}
 \begin{itemize}
 \item \textbf{Optimalizácia na optimalizačnom období funguje}: lokálne prehľadávanie má 1,7- až 2,5-krát
   vyšší Sharpe ako priemerné náhodné portfólio a je 1--5\,\% od odhadu z E1. Prvých 150--300
-  ohodnotení je lepšie náhodné prehľadávanie, lokálne ho prekoná po 400--550 ohodnoteniach
-  a na 1\,\% od svojej konečnej hodnoty je po 2\,000--3\,000 (obr.~\ref{fig:conv}).
+  ohodnotení je lepšie náhodné prehľadávanie; lokálne už po 400--550 prekoná, čo náhodné dosiahne
+  za 5\,000, a na 1\,\% od svojej konečnej hodnoty je po 2\,000--3\,000 (obr.~\ref{fig:conv}).
+\item \textbf{Optimalizácia portfólio sústreďuje}: $N_\text{eff}$ klesne zo 6,3 (priemer náhodných portfólií)
+  na 4,1--5,1, blízko minima 3,64, ktoré dovoľujú pravidlá.
 \item \textbf{Dobrý Sharpe v minulosti nezaručuje dobrý Sharpe v budúcnosti} (obr.~\ref{fig:random}).
   V I1 spolu silno súvisia (korelácia 0,77), v I2 dokonca opačne ($-0{,}41$). V I1 a I3 je optimalizácia
   na teste lepšia ako 1/N aj priemer náhodných, v ladiacej je na úrovni 1/N a v I2 horšia (strata 3,4\,\%):
@@ -304,7 +306,7 @@ Pri priemeroch je uvedená smerodajná odchýlka cez portfóliá/behy.}
 
 \begin{figure}[!ht]
 \centering
-\includegraphics[width=0.66\textwidth]{figures/random_train_test.png}
+\includegraphics[width=0.63\textwidth]{figures/random_train_test.png}
 \caption{Sharpe 10\,000 náhodných prípustných portfólií na optimalizačnom (vodorovne) a testovacom
 (zvisle) období a poloha referenčných metód; $\rho$ je korelácia medzi obdobiami.}
 \label{fig:random}
@@ -312,7 +314,7 @@ Pri priemeroch je uvedená smerodajná odchýlka cez portfóliá/behy.}
 
 \begin{figure}[!ht]
 \centering
-\includegraphics[width=0.66\textwidth]{figures/convergence.png}
+\includegraphics[width=0.63\textwidth]{figures/convergence.png}
 \caption{Najlepší Sharpe na optimalizačnom období podľa počtu ohodnotení (priemer cez 20 behov,
 pásmo = najhorší až najlepší beh).}
 \label{fig:conv}
@@ -321,9 +323,9 @@ pásmo = najhorší až najlepší beh).}
 \section{Navrhované metódy pre míľnik 3}
 \label{sec:m3}
 
-Čo sme sa naučili pri implementácii: ohodnotenie je lacné (desiatky mikrosekúnd), takže si môžeme
+Čo sme sa naučili pri implementácii: ohodnotenie je lacné (asi 0,1\,ms), takže si môžeme
 dovoliť desaťtisíce ohodnotení a 20--30 behov; pravidlá vieme vždy splniť lacnou opravou;
-reprezentácia cez skóre má plošiny (veľa skóre dá to isté portfólio). Úloha má kombinatorickú časť
+reprezentácia cez skóre má plošiny. Úloha má kombinatorickú časť
 (výber aktív) a spojitú (podiely); pri pevnom výbere sa Sharpe mení plynulo. Pri 30 aktívach je úloha
 pomerne ľahká, rozdiely medzi metódami budú viditeľnejšie na väčšej úlohe.
 
