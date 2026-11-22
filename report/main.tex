@@ -269,9 +269,9 @@ Všetky baseline vracajú prípustné portfólio bez penalizácie; jedinou výni
   rozdelenie, ktoré spĺňa pravidlá (10 aktív, podiel 10\,\% je v rozsahu), preto opravu nepotrebuje.
 \item \textbf{Greedy top-10}: 10 aktív s najvyšším vlastným Sharpe, po 10\,\% (tiež vždy prípustné) --
   „investovať do najlepších aktív“ bez ohľadu na to, ako sa navzájom dopĺňajú.
-\item \textbf{Náhodné a lokálne prehľadávanie} (5\,000 ohodnotení, 20 behov): dekóder urobí z každého
-  vektora skóre prípustné portfólio; náhodné vráti najlepšie z 5\,000 náhodných, lokálne mení skóre a zmenu
-  prijme, ak sa nezhorší. Sú to porovnávacie body pre metódy z M3 pri rovnakom počte ohodnotení.
+\item \textbf{Náhodné a lokálne prehľadávanie} (5\,000 ohodnotení, 20 behov) -- porovnávacie body pre M3:
+  náhodné vráti najlepšie z 5\,000 náhodných prípustných portfólií (generátor hlavného baseline);
+  lokálne mení skóre, z ktorých dekóder urobí prípustné portfólio, a zmenu prijme, ak sa nezhorší.
 \item \textbf{1/N} -- rovnako do všetkých 30 aktív. Porušuje O3, preto ho neporovnávame s metódami,
   uvádzame ho len ako známu referenciu výnosu a rizika \cite{demiguel2009}.
 \end{itemize}
