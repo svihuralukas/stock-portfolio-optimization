@@ -48,7 +48,7 @@ Na začiatku obdobia jednorazovo rozdelíme 10\,000\,USD medzi niekoľko akcií 
 portfólio potom bez zmien držíme a na konci ho predáme. Rozhodujeme, do ktorých aktív investovať
 a koľko do každého, aby malo portfólio čo najlepší pomer výnosu a rizika. Historické dáta delíme na
 \textbf{optimalizačné obdobie} (4 roky), na ktorom hľadáme portfólio, a nasledujúce \textbf{testovacie
-obdobie} (3 roky), ktoré algoritmus nikdy nevidí -- tak ako investor nepozná budúce ceny. Nastavenia
+obdobie} (3 roky, pri I3 dva, lebo dáta končia rokom 2025), ktoré algoritmus nikdy nevidí -- tak ako investor nepozná budúce ceny. Nastavenia
 metód a rozhodnutia o formulácii robíme na samostatnej ladiacej inštancii.
 
 \textbf{Vstupy.} 30 aktív: 15 ETF a 15 najväčších amerických firiem podľa veľkosti \emph{na začiatku}
@@ -146,7 +146,7 @@ Kód je v Pythone (\texttt{numpy}, \texttt{pandas}, \texttt{scipy}), spúšťani
 V \texttt{model.py} funkcia \texttt{check} vráti zoznam porušených pravidiel
 (napr. \texttt{O3 počet aktív 2 mimo [5, 10]}) a \texttt{evaluate} spočíta Sharpe, ročný výnos,
 kolísanie, najväčší prepad, konečnú sumu a $N_\text{eff}$; rýchla verzia na optimalizáciu počíta aj
-počet ohodnotení (jedno trvá asi desatinu milisekundy). \texttt{repair.py} obsahuje opravu, dekóder
+počet ohodnotení. \texttt{repair.py} obsahuje opravu, dekóder
 skóre a penalizáciu, \texttt{baselines.py} baseline.
 
 \textbf{Oprava} zmení ľubovoľný zoznam 30 čísel na prípustné portfólio v troch krokoch:
@@ -329,7 +329,7 @@ pásmo = najhorší až najlepší beh).}
 \section{Navrhované metódy pre míľnik 3}
 \label{sec:m3}
 
-Čo sme sa naučili pri implementácii: ohodnotenie je lacné (asi 0,1\,ms), takže si môžeme
+Čo sme sa naučili pri implementácii: ohodnotenie je lacné (jedno násobenie matice vektorom), takže si môžeme
 dovoliť desaťtisíce ohodnotení a 20--30 behov; pravidlá vieme vždy splniť lacnou opravou;
 reprezentácia cez skóre má plošiny. Úloha má kombinatorickú časť
 (výber aktív) a spojitú (podiely); pri pevnom výbere sa Sharpe mení plynulo. Pri 30 aktívach je úloha
