@@ -1,6 +1,6 @@
 # Variant 4A – Výber akcií alebo indexov
 
-Zadanie 2 z predmetu **Moderné prístupy v optimalizácii**, míľnik 2 (implementácia modelu a baseline).
+Zadanie 2 z predmetu **Moderné prístupy v optimalizácii**, míľnik 3 (prvé experimenty s metódami GA a SA+SLSQP).
 Tím: Lukáš Švihura, Dominik Keil, Ján Hrbál.
 
 Na začiatku obdobia rozdelíme 10 000 USD medzi 5 až 10 z 30 aktív (15 ETF + 15 najväčších
@@ -14,6 +14,16 @@ testovacom období (3 roky, resp. 2 roky pri I3).
 | I1 | 2014–2017 | 2018–2020 | záverečné porovnanie |
 | I2 | 2017–2020 | 2021–2023 | záverečné porovnanie |
 | I3 | 2020–2023 | 2024–2025 | záverečné porovnanie |
+
+## Míľnik 3 – kde čo nájdete
+
+| požiadavka zadania | súbory |
+|---|---|
+| implementácia oboch metód (GA s opravou, hybrid SA+SLSQP) | `src/portfolio/methods.py`, testy `tests/test_methods.py` |
+| ladenie parametrov (len ladiaca inštancia) | `scripts/tune_methods.py`, `results/m3_tuning.csv` |
+| porovnanie s baseline, viac behov, čas, štatistické testy | `scripts/run_methods.py`, `results/m3_runs.csv`, `m3_summary.csv`, `m3_tests.csv` |
+| strop podielu 30 % vs 20 % | `scripts/experiment_cap.py`, `results/m3_cap.csv` |
+| správa: výsledky, problémy, plán do M4 | `report/main.tex`, `report/main.pdf` (časti 7–9) |
 
 ## Míľnik 2 – kde čo nájdete
 
@@ -58,6 +68,27 @@ Experimenty k diverzifikácii a práci s obmedzeniami (E1, E2; `results/e1_*.csv
 python scripts/experiment_constraints.py
 ```
 
+Míľnik 3 – ladenie metód na ladiacej inštancii (asi 2 min, `results/m3_tuning.csv`):
+
+```bash
+python scripts/tune_methods.py
+```
+
+Míľnik 3 – všetky metódy na všetkých inštanciách, 5 000 a 20 000 ohodnotení, 20 behov
+(asi 10 min na 2 jadrách; `results/m3_*.csv`, tabuľka `report/tables/m3.tex`, grafy `report/figures/m3_*.png`).
+S `--report` len znova vytvorí tabuľky a grafy z uložených výsledkov:
+
+```bash
+python scripts/run_methods.py
+python scripts/run_methods.py --report
+```
+
+Míľnik 3 – strop podielu 30 % vs 20 % (asi 2 min, `results/m3_cap.csv`):
+
+```bash
+python scripts/experiment_cap.py
+```
+
 Dáta sú uložené v `data/prices.csv` (upravené záverečné ceny z Yahoo Finance, dividendy a splity
 zahrnuté, stiahnuté 17. 11. 2026). Znova ich stiahne (Yahoo spätne prepočítava upravené ceny
 pri každej dividende, preto nové stiahnutie dá mierne iné hodnoty; výsledky v správe sú
@@ -83,8 +114,9 @@ src/portfolio/
   model.py       kandidát (vektor podielov), kontrola O1–O5, simulácia, Sharpe, metriky, Evaluator
   repair.py      oprava na prípustné portfólio, dekóder skóre, penalizačné funkcie
   baselines.py   1/N, náhodné prípustné portfóliá, greedy top-k, náhodné a lokálne prehľadávanie
+  methods.py     genetický algoritmus s opravou, hybrid SA+SLSQP (analytický gradient Sharpe)
 scripts/         spúšťacie skripty (dáta, príklady, baseline, experimenty)
-tests/           unit testy modelu
+tests/           unit testy modelu a metód
 results/         výstupy experimentov (CSV, príklady v examples.txt)
-report/          správa k míľniku 2 (main.pdf)
+report/          správa k míľniku 3 (main.pdf)
 ```
