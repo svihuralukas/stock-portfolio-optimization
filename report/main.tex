@@ -26,12 +26,13 @@
 % Čísla v texte: results/*.csv a results/examples.txt (scripts/run_baselines.py,
 % scripts/experiment_constraints.py, scripts/examples.py). Tabuľky tables/baselines.tex a
 % tables/e2.tex generujú run_baselines.py a experiment_constraints.py.
+% M3: results/m3_*.csv (scripts/run_methods.py, tune_methods.py, experiment_cap.py), tabuľka tables/m3.tex.
 
 \begin{document}
 
 \begin{center}
 {\Large\bfseries Variant 4A -- Výber akcií alebo indexov}\\[3pt]
-Moderné prístupy v optimalizácii, zadanie č.\,2, míľnik č.\,2\\[2pt]
+Moderné prístupy v optimalizácii, zadanie č.\,2, míľnik č.\,3\\[2pt]
 Lukáš Švihura, Dominik Keil, Ján Hrbál
 \end{center}
 
@@ -40,6 +41,14 @@ prečo povoľujeme časti akcií a prečo prípustné riešenie vždy existuje (
 O3, O4 optimalizácia nedá všetko do jedného aktíva, ale portfólio silno sústredí (E1); oprava aj penalizácia
 sú implementované a porovnané (E2, časť~\ref{sec:div}); hlavný baseline je priemer 10\,000 náhodných
 portfólií (časť~\ref{sec:base}); diverzifikáciu meriame efektívnym počtom aktív, ktorý od výnosu nezávisí.
+
+\textbf{Spätná väzba zo zadania 1} (white-box znamená, že algoritmus vzorec hodnotenia \emph{využíva}, nie
+len to, že ho poznáme) je zapracovaná v tabuľke~\ref{tab:tax} a v časti~\ref{sec:m3}: white-box je len hybrid
+SA+SLSQP, ktorý počíta deriváciu Sharpe; GA a baseline hodnotenie len volajú.
+
+\textbf{Novinky v M3:} časti 1--6 sú z M2 (s drobnými úpravami), nové sú časti~\ref{sec:m3}--\ref{sec:plan}:
+implementácia oboch metód a ich ladenie, prvé experimenty na všetkých inštanciách
+a plán do finálnej verzie.
 
 \section{Úloha a jej formulácia}
 \label{sec:form}
@@ -107,7 +116,7 @@ s obmedzeniami & áno & náhodný kandidát O1--O5 takmer nikdy nesplní (časť
 jedno- / viackriteriálna & jednokriteriálna & výnos a riziko idú proti sebe, Sharpe ich spája do jedného čísla \\
 deterministická / stochastická & deterministická & na rovnakých historických dátach (optimalizačných aj testovacích) má kandidát vždy rovnaké hodnotenie \\
 statická / dynamická & statická & rozhodujeme raz, portfólio počas držby nemeníme \\
-prístup k hodnoteniu & white-box & vzorec poznáme; pri pevnom výbere je Sharpe hladký v podieloch (časť~\ref{sec:m3}) \\
+prístup k hodnoteniu & white-box (len hybrid) & vzorec poznáme, ale o white-box ide, až keď ho metóda využíva: SA+SLSQP počíta deriváciu Sharpe podľa podielov; GA a baseline ho používajú ako black-box (časť~\ref{sec:m3}) \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -177,7 +186,8 @@ $N_\text{eff}$ menší ako 5, plus prekročenie podielu 30\,\%. Algoritmus si pa
 
 \section{Overenie modelu}
 
-\textbf{Unit testy} (24, všetky prechádzajú) overujú model na ručne spočítaných príkladoch.
+\textbf{Unit testy} (28, všetky prechádzajú) overujú model na ručne spočítaných príkladoch
+(4 z nich overujú metódy z M3: prípustnosť, dodržanie rozpočtu, zopakovateľnosť, gradient).
 Napr. aktívum A stojí 100, 110, 99\,USD a B 50, 50, 60\,USD; portfólio 50/50 z 1\,000\,USD
 má hodnoty 1\,000, 1\,050 a 1\,095\,USD a model vráti presne tieto hodnoty aj zodpovedajúci Sharpe.
 Ďalej testujeme najväčší prepad, zhodu rýchlej a úplnej verzie hodnotenia, odhalenie porušenia
@@ -258,7 +268,7 @@ Sharpe je priemer $\pm$ smerodajná odchýlka cez behy, pre odovzdané (vždy pr
 
 \textbf{Rozhodnutie:} používame \textbf{pevné pravidlá s opravou}. Výsledok je vždy prípustný, netreba
 hľadať silu trestu a celý rozpočet ohodnotení ide na prípustných kandidátov. Mieru diverzifikácie riadime
-pravidlami (najmenší počet aktív, najväčší podiel); v M3 porovnáme strop 30\,\% aj 20\,\%.
+pravidlami (najmenší počet aktív, najväčší podiel); strop 30\,\% a 20\,\% porovnávame v časti~\ref{sec:exp}.
 
 \section{Baseline}
 \label{sec:base}
@@ -326,33 +336,159 @@ pásmo = najhorší až najlepší beh).}
 \label{fig:conv}
 \end{figure}
 
-\section{Navrhované metódy pre míľnik 3}
+\section{Metódy}
 \label{sec:m3}
 
-Čo sme sa naučili pri implementácii: ohodnotenie je lacné (jedno násobenie matice vektorom), takže si môžeme
-dovoliť desaťtisíce ohodnotení a 20--30 behov; pravidlá vieme vždy splniť lacnou opravou;
-reprezentácia cez skóre má plošiny. Úloha má kombinatorickú časť
-(výber aktív) a spojitú (podiely); pri pevnom výbere sa Sharpe mení plynulo. Pri 30 aktívach je úloha
-pomerne ľahká, rozdiely medzi metódami budú viditeľnejšie na väčšej úlohe.
+Obe metódy navrhnuté v M2 sú v \texttt{src/portfolio/methods.py}. Používajú ten istý \texttt{Evaluator}
+s počítadlom ako baseline, takže rozpočet je pre všetky metódy rovnaký, a obe vracajú vždy prípustné portfólio
+(kontroluje to \texttt{check} na konci každého behu aj unit testy).
 
-\textbf{1. Genetický algoritmus s priamou reprezentáciou a opravou} \cite{chang2000}. Jedinec je
-priamo zoznam podielov. Kríženie zoberie aktíva oboch rodičov a podiely spriemeruje; mutácie
-\emph{vymenia} aktívum, \emph{presunú} časť podielu alebo aktívum \emph{pridajú či odoberú}; po každej
-operácii nasleduje oprava. Výber turnajom, elitizmus, koniec po pevnom počte ohodnotení. Prečo: kríženie
-vie spojiť dobré časti rôznych portfólií (napr. dlhopisovú a akciovú zložku), čo lokálne prehľadávanie
-nevie, a lacná oprava zaručí prípustnosť každého potomka. Parametre naladíme na ladiacej inštancii.
+\textbf{1. Genetický algoritmus (GA) s priamou reprezentáciou a opravou} \cite{chang2000}. Jedinec je
+priamo zoznam 30 podielov. Štartovacia populácia sú náhodné prípustné portfóliá (generátor hlavného baseline).
+\emph{Kríženie} spriemeruje podiely oboch rodičov (vzniknú aktíva oboch) a vybrané podiely vynásobí
+náhodným číslom 0,8--1,2, aby oprava pri viac ako 10 aktívach nevyberala vždy len spoločné aktíva.
+\emph{Mutácia} s rovnakou pravdepodobnosťou vymení aktívum (nové prevezme podiel starého), presunie 0--10\,\%
+medzi dvoma vybranými aktívami alebo aktívum pridá (s podielom 5\,\%) či odoberie. Po každom krížení a mutácii
+nasleduje oprava z časti~\ref{sec:impl}. Výber turnajom (3), 2 najlepší jedinci prechádzajú bez zmeny,
+koniec po vyčerpaní rozpočtu.
 
-\textbf{2. Hybrid: simulované žíhanie pre výber aktív + presný výpočet podielov.}
-Simulované žíhanie prehľadáva len množiny 5--10 aktív (vymení, pridá alebo odoberie aktívum).
-Pre každú množinu nájde najlepšie podiely gradientová metóda (SLSQP zo \texttt{scipy}) s podmienkou
-súčtu 100\,\% a rozsahom 5--30\,\%. Využívame, že vzorec hodnotenia poznáme (\emph{white-box}): pre pevný
-výber je úloha plynulá a má najviac 10 premenných. Vnútorný krok je drahý: započítame všetky jeho
-ohodnotenia aj čas, obmedzíme počet iterácií a vyskúšame aj ladenie podielov len pre najlepšie množiny.
+\textbf{2. Hybrid SA+SLSQP} (simulované žíhanie pre výber aktív, gradientová metóda pre podiely).
+Žíhanie prechádza len množinami 5--10 aktív; sused vznikne výmenou, pridaním alebo odobratím jedného aktíva.
+Hodnota množiny je Sharpe pri najlepších podieloch, ktoré nájde SLSQP (\texttt{scipy}) s podmienkami
+súčet 100\,\% a 5--30\,\% na aktívum. Toto je jediná metóda, ktorá využíva \emph{white-box}: Sharpe vieme derivovať podľa podielov
+presne (vzorec je v kóde, overený voči numerickej derivácii s~relatívnou chybou $3\cdot10^{-9}$),
+takže SLSQP konverguje za pár iterácií. Do rozpočtu započítavame každé volanie funkcie
+aj gradientu (gradient stojí zhruba toľko ako jedno ohodnotenie), na jednu množinu padne priemerne
+10--25 ohodnotení. SLSQP štartuje z podielov aktuálneho riešenia (nové aktívum dostane podiel odobratého),
+už videné množiny si pamätáme. Teplota klesá geometricky z 0,01 na 0,001 podľa minutého rozpočtu.
 
-\textbf{Záloha:} diferenciálna evolúcia v reprezentácii cez skóre (náhodná štartovacia populácia má
-však takmer len portfóliá s~10 aktívami). \textbf{Plán M3:} všetky metódy spustíme na I1--I3 s rovnakým rozpočtom (5\,000 a 20\,000 ohodnotení)
-a 20--30 behmi; porovnáme Sharpe na optimalizačnom období, výsledky na teste voči baseline,
-čas a rozptyl (Wilcoxonov test). Potom úlohu zväčšíme (napr. 60 aktív, 5--20 vybraných).
+\textbf{Ladenie} (len na ladiacej inštancii, 5\,000 ohodnotení, 8 behov, \texttt{scripts/tune\_methods.py}).
+GA: veľkosť populácie 20/50/100 $\times$ pravdepodobnosť mutácie 0,4/0,7/1,0. Menšia populácia bola
+jednoznačne lepšia (priemer 2,337 pri 20 oproti 2,307--2,312 pri 100), mutácia mala malý vplyv; zvolili sme
+20 a 0,4. SA+SLSQP: počiatočná teplota 0,01/0,05/0,2 $\times$ max. 20/50 iterácií SLSQP -- všetkých
+6 nastavení dalo prakticky rovnaký výsledok (2,3386--2,3389), zvolili sme 0,01 a 50.
+
+\textbf{Problém, ktorý sme našli a opravili.} Pri 20\,000 ohodnoteniach sa SA+SLSQP na niektorých
+inštanciách takmer zasekol: po nájdení optima boli všetci susedia už v pamäti, takže kroky nestáli žiadne
+ohodnotenie, rozpočet neubúdal a teplota neklesala (na ladiacej inštancii 223\,000 krokov namiesto
+zvyčajných 5\,000--15\,000, na ďalších sa experiment nedokončil ani za pol hodiny).
+Pridali sme \emph{reštart pri stagnácii}: ak je 300 návrhov za sebou už v pamäti, skočíme z najlepšej
+množiny o 3 náhodné kroky na ešte nenavštívenú množinu a pokračujeme odtiaľ. Beh s 20\,000 ohodnoteniami
+teraz trvá 4--5\,s a výsledok sa nezhoršil.
+
+\section{Prvé experimenty}
+\label{sec:exp}
+
+\textbf{Nastavenie.} Štyri metódy (náhodné a lokálne prehľadávanie z M2, GA, SA+SLSQP) na všetkých
+štyroch inštanciách, rozpočet 5\,000 a 20\,000 ohodnotení, 20 behov s pevnými seedmi
+(\texttt{scripts/run\_methods.py}, asi 10 minút na 2 jadrách). Všetkých 640 výsledkov prešlo kontrolou
+O1--O5. Keďže nepoznáme skutočné optimum, porovnávame s \emph{najlepšou známou hodnotou} (BKV) --
+najvyšším Sharpe zo všetkých behov všetkých metód na danej inštancii. Beh „našiel BKV“, ak je od nej
+bližšie ako 0,001\,\%. Behy rôznych metód sú nezávislé, preto namiesto párového Wilcoxonovho testu
+z plánu v M2 používame jeho nepárovú verziu (Mannov--Whitneyho test).
+
+\begin{table}[!ht]
+\centering\footnotesize
+\caption{Výsledky 20 behov. Sharpe na optimalizačnom období (priemer $\pm$ smerodajná odchýlka cez behy),
+BKV = podiel behov, ktoré našli najlepšiu známu hodnotu, ohodn. = medián počtu ohodnotení, po ktorom
+beh dosiahol 99,9\,\% svojej konečnej hodnoty, Test = priemerný Sharpe na testovacom období,
+Čas = priemerný čas behu s 20\,000 ohodnoteniami (2 behy súčasne na 2-jadrovom počítači).}
+\label{tab:m3}
+\setlength{\tabcolsep}{3.5pt}
+\input{tables/m3.tex}
+\end{table}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/m3_convergence.png}
+\caption{Odstup od najlepšej známej hodnoty (v \%) podľa počtu ohodnotení, rozpočet 20\,000.
+Čiara = medián cez 20 behov, pásmo = najhorší až najlepší beh. Obe osi sú logaritmické,
+pod 0,1\,\% je zvislá os lineárna, takže 0 znamená, že beh našiel BKV.}
+\label{fig:m3conv}
+\end{figure}
+
+\textbf{Kvalita riešení} (tabuľka~\ref{tab:m3}, obr.~\ref{fig:m3conv}).
+\begin{itemize}
+\item \textbf{SA+SLSQP} našiel BKV vo \emph{všetkých} 160 behoch, aj s rozpočtom 5\,000. Všetky behy
+  skončili v tom istom portfóliu, takže metóda je v praxi deterministická. Na 5\,000 ohodnoteniach je
+  štatisticky významne lepší ako GA aj lokálne prehľadávanie na všetkých inštanciách ($p<10^{-6}$).
+\item \textbf{GA} je pri 5\,000 ohodnoteniach v priemere 0,01--0,08\,\% od BKV; proti lokálnemu
+  prehľadávaniu je lepší na ladiacej a I1 (na I1 0,01 vs 0,50\,\% od BKV), na I2 a I3 mierne horší.
+  Pri 20\,000 je do 0,006\,\% od BKV, no presne ju nájde len v 25--100\,\% behov: dolaďovanie podielov
+  náhodnými presunmi je pomalé.
+\item \textbf{Lokálne prehľadávanie} (baseline) je pri 20\,000 tiež skoro vždy v BKV, s výnimkou I1
+  (priemerne 0,15\,\% od BKV, len 10\,\% behov v BKV). Náhodné prehľadávanie zostáva 5--12\,\% pod BKV.
+\item Na 99,9\,\% konečnej hodnoty sa GA aj SA+SLSQP dostanú za 1\,300--3\,700 ohodnotení, lokálne
+  prehľadávanie za 2\,100--5\,200.
+\end{itemize}
+\textbf{Rozdiely sú štatisticky významné, ale prakticky zanedbateľné.} Pri 20\,000 ohodnoteniach je
+najväčší rozdiel priemerov medzi GA, SA+SLSQP a lokálnym prehľadávaním 0,003 Sharpe (I1). Úloha s 30 aktívami je
+pre rozumnú metódu s týmto rozpočtom ľahká -- presne ako sme čakali v M2. BKV je 0,9--4\,\% pod
+horným odhadom z E1 (úloha bez O3 a O4), čo je cena za pravidlá.
+
+\textbf{Výpočtová náročnosť.} Jedno ohodnotenie trvá vrátane réžie metódy asi 90\,µs pri náhodnom
+prehľadávaní, 140\,µs pri lokálnom, 150--180\,µs pri GA (oprava každého potomka) a 200\,µs pri SA+SLSQP
+(réžia SLSQP). SA+SLSQP je teda na ohodnotenie najdrahší, no k BKV potrebuje najmenej ohodnotení, takže
+\emph{časovo} je najrýchlejšou cestou k optimu (pod 1\,s).
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\textwidth]{figures/m3_test.png}
+\caption{Sharpe na testovacom období pre 20 behov s 20\,000 ohodnoteniami. NP = náhodné prehľadávanie,
+LP = lokálne prehľadávanie, GA, SA = SA+SLSQP. Čiary: priemer náhodných prípustných portfólií
+a 1/N (porušuje O3, len referencia).}
+\label{fig:m3test}
+\end{figure}
+
+\textbf{Výsledky na teste} (obr.~\ref{fig:m3test}). Keďže GA, SA+SLSQP aj lokálne prehľadávanie končia
+v rovnakom alebo takmer rovnakom portfóliu, majú aj takmer rovnaký výsledok na teste. Oproti
+baseline z M2 sa teda nič nemení: v I1 je optimalizované portfólio na teste výrazne lepšie ako
+priemer náhodných portfólií aj 1/N (Sharpe 1,27 vs 0,56 a 0,59), v I3 tiež (1,76 vs 1,45 a 1,64),
+v ladiacej je na úrovni 1/N a v I2 je horšie (\,$-0{,}07$ vs 0,69). Optimum v I2 sú najmä dlhopisy
+a zlato (AGG 23, TLT 30, GLD 23\,\%), ktoré v roku 2022 prudko klesli. Zaujímavé je, že
+\emph{horšie optimalizujúce} náhodné prehľadávanie má na teste v troch inštanciách zo štyroch vyšší
+priemerný Sharpe (napr. I2: 0,20 vs $-0{,}07$, I3: 1,88 vs 1,76) -- typický prejav preučenia
+na optimalizačnom období \cite{michaud1989}: čím presnejšie trafíme minulosť, tým viac stavíme na jej
+náhodné črty.
+
+\textbf{Strop podielu 30\,\% vs 20\,\%} (sľúbené v M2, \texttt{scripts/experiment\_cap.py}, SA+SLSQP,
+20\,000 ohodnotení, 5 behov). Strop 20\,\% zníži Sharpe na optimalizačnom období o 0,9--3,0\,\%,
+portfólio je rozloženejšie ($N_\text{eff}$ 5,6--6,3 namiesto 4,1--5,0) a na teste je Sharpe vyšší
+v troch inštanciách zo štyroch (ladiaca 1,02 vs 0,91, I1 1,29 vs 1,27, I3 1,87 vs 1,76; I2 $-0{,}07$
+v oboch prípadoch). Prísnejšie pravidlo teda funguje ako ochrana proti preučeniu.
+
+\section{Zhodnotenie a plán do finálnej verzie}
+\label{sec:plan}
+
+\textbf{Hodia sa metódy na úlohu?} Áno, obe vždy vrátia prípustné portfólio a dostanú sa k najlepšej
+známej hodnote. SA+SLSQP sa hodí najlepšie: rozdelenie na kombinatorickú časť (výber) a spojitú časť
+(podiely, riešená presne cez gradient) presne zodpovedá štruktúre úlohy. GA je univerzálnejší (netreba
+gradient), no podiely dolaďuje pomaly.
+
+\textbf{Aktuálne problémy.}
+\begin{itemize}
+\item \emph{Úloha je príliš ľahká na porovnanie metód}: pri 20\,000 ohodnoteniach skončia v optime aj baseline.
+\item \emph{Preučenie}: lepšia optimalizácia neznamená lepší výsledok na teste, v I2 je optimum na teste
+  horšie ako náhodné portfólio.
+\item \emph{GA pomaly dolaďuje podiely} (náhodné presuny), \emph{SA+SLSQP} sa bez reštartu zasekával
+  (opravené, pozri časť~\ref{sec:m3}).
+\item Neprípustné riešenia ani nestabilné výsledky sme nepozorovali: všetky výsledky sú prípustné
+  a rozptyl GA a SA+SLSQP cez behy je pri 20\,000 ohodnoteniach pod 0,001 Sharpe.
+\end{itemize}
+
+\textbf{Plán do M4.}
+\begin{enumerate}
+\item \textbf{Väčšia úloha}: 60--100 aktív (viac firiem a ETF) a 5--20 vybraných; menší rozpočet
+  (1\,000--5\,000), aby sa rozdiely medzi metódami ukázali.
+\item \textbf{GA + SLSQP}: na konci (alebo pre najlepšieho jedinca každých pár generácií) doladiť
+  podiely rovnakým SLSQP ako v hybride -- rieši pomalé dolaďovanie GA.
+\item \textbf{Proti preučeniu}: porovnať strop 20\,\% ako pravidlo, robustnejší odhad (napr. Sharpe
+  počítaný z viacerých podobdobí -- priemer alebo najhoršie z nich) a hodnotenie na viacerých
+  posunutých oknách (napr. každý rok nová inštancia), aby závery nestáli na jednom roku 2022.
+\item Pre GA a SA+SLSQP porovnať citlivosť na parametre aj na hodnotiacich inštanciách
+  (doteraz len na ladiacej).
+\end{enumerate}
+Metódy nemeníme -- prvé výsledky ukazujú, že fungujú; meníme úlohu (väčšia) a hodnotenie (robustnosť).
 
 \textbf{Obmedzenia záverov:} len tri hodnotiace inštancie, ktoré sa čiastočne prekrývajú, a výsledky na
 teste silno závisia od diania na trhu (napr. rok 2022 pre dlhopisy); poradie firiem okolo 15. miesta
